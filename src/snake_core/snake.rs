@@ -22,6 +22,7 @@ impl Snake {
 
     pub fn move_head(&mut self, direction: Direction, width: u64, height: u64) {
         self.direction = direction;
+        println!("{}", self);
         let (x, y) = match self.direction {
             Direction::Up => (0, height + 1),
             Direction::Down => (0, height - 1),
@@ -29,8 +30,8 @@ impl Snake {
             Direction::Right => (width + 1, 0),
         };
 
-        for i in (1..self.positions.len() - 1).rev() {
-            self.positions[i] = self.positions[i + 1];
+        for i in (1..self.positions.len()).rev() {
+            self.positions[i] = self.positions[i - 1];
         }
 
         let old = self.positions[0];
@@ -38,6 +39,11 @@ impl Snake {
             (old.0 + (x + width)) % width,
             (old.1 + (y + height)) % height,
         );
+    }
+
+    pub fn add_tail(&mut self) {
+        self.positions
+            .push(self.positions[self.positions.len() - 1]);
     }
 }
 

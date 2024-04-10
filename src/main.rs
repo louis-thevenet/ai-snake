@@ -1,3 +1,10 @@
+use bevy::{app::App, DefaultPlugins};
+use snake_game::SnakeGamePlugin;
+mod snake;
+mod snake_game;
 fn main() {
-    println!("Hello, world!");
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(SnakeGamePlugin)
+        .run();
 }

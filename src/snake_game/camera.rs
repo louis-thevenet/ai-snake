@@ -8,9 +8,9 @@ pub fn spawn_camera(mut commands: Commands, config: Res<Configuration>) {
     let cell_size = config.cell_size;
 
     let cam = Camera2dBundle {
-        transform: Transform::from_xyz(cell_size / 2.0, cell_size / 2.0, 0.0),
+        transform: Transform::from_xyz(cell_size / 2.0, cell_size / 2.0, 1.0),
         projection: OrthographicProjection {
-            scaling_mode: ScalingMode::FixedVertical(config.height as f32 * cell_size),
+            scaling_mode: ScalingMode::FixedVertical((config.height + 1) as f32 * cell_size),
             ..Default::default()
         },
         ..default()

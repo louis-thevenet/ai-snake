@@ -1,6 +1,6 @@
 use bevy::{app::App, DefaultPlugins};
-use snake_game::SnakeGamePlugin;
-mod snake;
+use snake_game::game::SnakeGamePlugin;
+mod snake_core;
 mod snake_game;
 fn main() {
     App::new()

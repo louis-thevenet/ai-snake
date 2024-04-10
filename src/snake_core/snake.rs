@@ -20,18 +20,6 @@ impl Snake {
         }
     }
 
-    pub fn from_initial_position(x: u64, y: u64, id: usize) -> Self {
-        Snake {
-            positions: vec![(x, y)],
-            direction: Direction::Up,
-            id,
-        }
-    }
-
-    pub fn is_in_position(&self, x: u64, y: u64) -> bool {
-        self.positions.contains(&(x, y))
-    }
-
     pub fn move_head(&mut self, direction: Direction, width: u64, height: u64) {
         self.direction = direction;
         let (x, y) = match self.direction {

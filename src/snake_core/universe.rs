@@ -40,10 +40,10 @@ impl Universe {
 
 impl Display for Universe {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Universe: {} by {}\n", self.width, self.height)?;
+        writeln!(f, "Universe: {} by {}", self.width, self.height)?;
 
         for snake in &self.snakes {
-            write!(f, "{}", snake)?;
+            write!(f, "{snake}")?;
         }
         Ok(())
     }

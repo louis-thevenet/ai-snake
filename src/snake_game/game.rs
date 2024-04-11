@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, time::common_conditions::on_timer};
+use bevy::{ecs::query, prelude::*, time::common_conditions::on_timer};
 
 use crate::snake_core::{snake::Snake, universe::Universe};
 
@@ -13,7 +13,7 @@ pub struct Configuration {
 }
 
 #[derive(Component)]
-struct SpriteId {
+struct BodySpriteId {
     snake_id: usize,
     body_id: usize,
 }
@@ -30,9 +30,23 @@ impl Plugin for SnakeGamePlugin {
             );
     }
 }
-
+fn create_sprite(color: Color, config: &Configuration, x: f32, y: f32) -> SpriteBundle {
+    SpriteBundle {
+        sprite: Sprite {
+            color,
+            custom_size: Some(Vec2::new(config.cell_size, config.cell_size)),
+            ..default()
+        },
+        transform: Transform::from_translation(Vec3::new(
+            x * config.cell_size - config.cell_size * config.width as f32 / 2.0,
+            y * config.cell_size - config.cell_size * config.height as f32 / 2.0,
+            0.,
+        )),
+        ..default()
+    }
+}
 fn setup_game(mut commands: Commands) {
-    let width = 80;
+    let width = 50;
     let height = 50;
 
     let config = Configuration {
@@ -41,27 +55,15 @@ fn setup_game(mut commands: Commands) {
         cell_size: 16.0,
     };
 
-    let snake = Snake::new(height, width, 0);
+    let snake = Snake::new(width, height, 0);
 
-    for (x, y) in snake.positions.iter() {
-        let new_sprite = SpriteBundle {
-            sprite: Sprite {
-                color: Color::WHITE,
-                custom_size: Some(Vec2::new(config.cell_size, config.cell_size)),
-                ..default()
-            },
-            transform: Transform::from_translation(Vec3::new(
-                *x as f32 * config.cell_size - config.cell_size * width as f32 / 2.0,
-                *y as f32 * config.cell_size - config.cell_size * height as f32 / 2.0,
-                0.,
-            )),
-            ..default()
-        };
+    for (i, (x, y)) in snake.positions.iter().enumerate() {
+        let new_sprite = create_sprite(Color::WHITE, &config, *x as f32, *y as f32);
         commands.spawn((
             new_sprite,
-            SpriteId {
+            BodySpriteId {
                 snake_id: snake.id,
-                body_id: 0,
+                body_id: i,
             },
         ));
     }
@@ -72,11 +74,12 @@ fn setup_game(mut commands: Commands) {
 }
 
 fn update_sprites(
-    mut query: Query<(&SpriteId, &mut Transform)>,
+    mut query_body_sprites: Query<(&BodySpriteId, &mut Transform)>,
     universe: Res<Universe>,
     config: Res<Configuration>,
+    mut commands: Commands,
 ) {
-    for (sprite_id, mut transform) in query.iter_mut() {
+    for (sprite_id, mut transform) in query_body_sprites.iter_mut() {
         let snake = universe.get_snake(sprite_id.snake_id);
         let (new_pos_x, new_pos_y) = snake.positions[sprite_id.body_id];
         transform.translation = Vec3::new(
@@ -84,6 +87,26 @@ fn update_sprites(
             new_pos_y as f32 * config.cell_size - config.cell_size * universe.height as f32 / 2.0,
             0.,
         );
+    }
+
+    for (i, snake) in universe.snakes.iter().enumerate() {
+        if query_body_sprites
+            .iter()
+            .map(|(id, _)| Some(id.snake_id == i))
+            .len()
+            < snake.positions.len()
+        {
+            println!("Missing sprite for snake {}", i);
+            let pos = snake.positions.last().unwrap();
+            let new_sprite = create_sprite(Color::WHITE, &config, pos.0 as f32, pos.1 as f32);
+            commands.spawn((
+                new_sprite,
+                BodySpriteId {
+                    snake_id: snake.id,
+                    body_id: i,
+                },
+            ));
+        }
     }
 }
 fn display_grid(config: Res<Configuration>, universe: ResMut<Universe>, mut gizmos: Gizmos) {
@@ -120,24 +143,73 @@ fn display_grid(config: Res<Configuration>, universe: ResMut<Universe>, mut gizm
         );
     }
 }
-fn snake_controls(keys: Res<ButtonInput<KeyCode>>, mut universe: ResMut<Universe>) {
-    let dir = universe.get_snake(0).direction.clone();
 
-    if keys.pressed(KeyCode::KeyW) && !matches!(dir, crate::snake_core::universe::Direction::Down) {
-        universe.move_snake(0, crate::snake_core::universe::Direction::Up);
+fn spawn_body_sprite(
+    mut commands: Commands,
+    config: Res<Configuration>,
+    universe: ResMut<Universe>,
+    snake_id: usize,
+) {
+    let snake = universe.get_snake(snake_id);
+    let body_sprite = snake.positions[snake.positions.len() - 1];
+    let new_sprite = SpriteBundle {
+        sprite: Sprite {
+            color: Color::WHITE,
+            custom_size: Some(Vec2::new(config.cell_size, config.cell_size)),
+            ..default()
+        },
+        transform: Transform::from_translation(Vec3::new(
+            body_sprite.0 as f32 * config.cell_size - config.cell_size * config.width as f32 / 2.0,
+            body_sprite.1 as f32 * config.cell_size - config.cell_size * config.height as f32 / 2.0,
+            0.,
+        )),
+        ..default()
+    };
+    commands.spawn((
+        new_sprite,
+        BodySpriteId {
+            snake_id: snake.id,
+            body_id: snake.positions.len() - 1,
+        },
+    ));
+}
+
+fn snake_controls(keys: Res<ButtonInput<KeyCode>>, mut universe: ResMut<Universe>) {
+    let current_direction = universe.get_snake(0).direction.clone();
+    universe.spawn_food();
+    let direction = if keys.pressed(KeyCode::KeyW)
+        && !matches!(
+            current_direction,
+            crate::snake_core::universe::Direction::Down
+        ) {
+        crate::snake_core::universe::Direction::Up
     } else if keys.pressed(KeyCode::KeyA)
-        && !matches!(dir, crate::snake_core::universe::Direction::Right)
+        && !matches!(
+            current_direction,
+            crate::snake_core::universe::Direction::Right
+        )
     {
-        universe.move_snake(0, crate::snake_core::universe::Direction::Left);
+        crate::snake_core::universe::Direction::Left
     } else if keys.pressed(KeyCode::KeyS)
-        && !matches!(dir, crate::snake_core::universe::Direction::Up)
+        && !matches!(
+            current_direction,
+            crate::snake_core::universe::Direction::Up
+        )
     {
-        universe.move_snake(0, crate::snake_core::universe::Direction::Down);
+        crate::snake_core::universe::Direction::Down
     } else if keys.pressed(KeyCode::KeyD)
-        && !matches!(dir, crate::snake_core::universe::Direction::Left)
+        && !matches!(
+            current_direction,
+            crate::snake_core::universe::Direction::Left
+        )
     {
-        universe.move_snake(0, crate::snake_core::universe::Direction::Right);
+        crate::snake_core::universe::Direction::Right
     } else {
-        universe.move_snake(0, dir);
+        current_direction
+    };
+
+    let ate = universe.move_snake(0, direction);
+    if ate {
+        universe.spawn_food();
     }
 }

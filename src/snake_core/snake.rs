@@ -22,7 +22,6 @@ impl Snake {
 
     pub fn move_head(&mut self, direction: Direction, width: u64, height: u64) {
         self.direction = direction;
-        println!("{}", self);
         let (x, y) = match self.direction {
             Direction::Up => (0, height + 1),
             Direction::Down => (0, height - 1),
@@ -44,6 +43,10 @@ impl Snake {
     pub fn add_tail(&mut self) {
         self.positions
             .push(self.positions[self.positions.len() - 1]);
+    }
+
+    pub fn is_in_pos(&self, pos: (u64, u64)) -> bool {
+        self.positions.contains(&pos)
     }
 }
 

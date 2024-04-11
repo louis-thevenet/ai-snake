@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bevy ={version= "0.13.2", features=["wayland"]}
 bevy_egui = "0.26.0"
+rand = "0.8.5"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

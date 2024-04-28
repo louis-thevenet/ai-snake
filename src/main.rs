@@ -1,5 +1,6 @@
 use bevy::{app::App, DefaultPlugins};
 use snake_game::game::SnakeGamePlugin;
+mod rendering;
 mod snake_core;
 mod snake_game;
 fn main() {

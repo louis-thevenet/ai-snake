@@ -40,9 +40,8 @@ impl Snake {
         );
     }
 
-    pub fn add_tail(&mut self) {
-        self.positions
-            .push(self.positions[self.positions.len() - 1]);
+    pub fn add_tail(&mut self, pos: (u64, u64)) {
+        self.positions.push(pos);
     }
 
     pub fn is_in_pos(&self, pos: (u64, u64)) -> bool {

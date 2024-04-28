@@ -5,9 +5,9 @@ use rand::Rng;
 
 use super::snake::Snake;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 
-pub struct Food((u64, u64));
+pub struct Food(pub u64, pub u64);
 
 #[derive(Debug, Clone)]
 pub enum Direction {
@@ -48,17 +48,18 @@ impl Universe {
             }
         }
 
-        self.food.push(Food((x, y)));
+        self.food.push(Food(x, y));
         (x, y)
     }
 
     /// Move the snake and check if it ate something
     pub fn move_snake(&mut self, id: usize, dir: Direction) -> bool {
+        let new_tail_pos = self.snakes[id].positions[self.snakes[id].positions.len() - 1];
         self.snakes[id].move_head(dir, self.width, self.height);
         let pos = self.snakes[id].positions[0];
         for (i, food) in self.food.iter().enumerate() {
-            if pos == food.0 {
-                self.snakes[id].add_tail();
+            if pos == (food.0, food.1) {
+                self.snakes[id].add_tail(new_tail_pos);
                 self.food.remove(i);
                 return true;
             }

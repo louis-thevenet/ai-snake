@@ -1,8 +1,11 @@
-use std::time::Duration;
+use std::{ops::Deref, time::Duration};
 
 use bevy::{ecs::query, prelude::*, time::common_conditions::on_timer};
 
-use crate::snake_core::{snake::Snake, universe::Universe};
+use crate::snake_core::{
+    snake::Snake,
+    universe::{Food, Universe},
+};
 
 use super::camera::{camera_controls, spawn_camera};
 #[derive(Resource)]
@@ -18,6 +21,11 @@ struct BodySpriteId {
     body_id: usize,
 }
 
+#[derive(Component)]
+struct FoodSpriteId {
+    food: Food,
+}
+
 pub struct SnakeGamePlugin;
 
 impl Plugin for SnakeGamePlugin {
@@ -25,7 +33,7 @@ impl Plugin for SnakeGamePlugin {
         app.add_systems(Startup, (setup_game, spawn_camera).chain())
             .add_systems(Update, (update_sprites, display_grid, camera_controls))
             .add_systems(
-                Update,
+                FixedUpdate,
                 (snake_controls).run_if(on_timer(Duration::from_millis(150))),
             );
     }
@@ -46,8 +54,8 @@ fn create_sprite(color: Color, config: &Configuration, x: f32, y: f32) -> Sprite
     }
 }
 fn setup_game(mut commands: Commands) {
-    let width = 50;
-    let height = 50;
+    let width = 20;
+    let height = 20;
 
     let config = Configuration {
         width,
@@ -56,29 +64,20 @@ fn setup_game(mut commands: Commands) {
     };
 
     let snake = Snake::new(width, height, 0);
-
-    for (i, (x, y)) in snake.positions.iter().enumerate() {
-        let new_sprite = create_sprite(Color::WHITE, &config, *x as f32, *y as f32);
-        commands.spawn((
-            new_sprite,
-            BodySpriteId {
-                snake_id: snake.id,
-                body_id: i,
-            },
-        ));
-    }
-    let universe = Universe::new(width, height, vec![snake]);
-
+    let mut universe = Universe::new(width, height, vec![snake]);
+    universe.spawn_food();
     commands.insert_resource(universe);
     commands.insert_resource(config);
 }
 
 fn update_sprites(
     mut query_body_sprites: Query<(&BodySpriteId, &mut Transform)>,
-    universe: Res<Universe>,
+    food_sprites: Query<(Entity, &FoodSpriteId)>,
+    universe: ResMut<Universe>,
     config: Res<Configuration>,
     mut commands: Commands,
 ) {
+    // Update snakes
     for (sprite_id, mut transform) in query_body_sprites.iter_mut() {
         let snake = universe.get_snake(sprite_id.snake_id);
         let (new_pos_x, new_pos_y) = snake.positions[sprite_id.body_id];
@@ -96,19 +95,40 @@ fn update_sprites(
             .len()
             < snake.positions.len()
         {
-            println!("Missing sprite for snake {}", i);
-            let pos = snake.positions.last().unwrap();
-            let new_sprite = create_sprite(Color::WHITE, &config, pos.0 as f32, pos.1 as f32);
+            if let Some(pos) = snake.positions.last() {
+                let new_sprite = create_sprite(Color::WHITE, &config, pos.0 as f32, pos.1 as f32);
+
+                commands.spawn((
+                    new_sprite,
+                    BodySpriteId {
+                        snake_id: snake.id,
+                        body_id: snake.positions.len() - 1,
+                    },
+                ));
+            }
+        }
+    }
+
+    // Update food
+    for (entity, food_sprite_id) in food_sprites.into_iter() {
+        if !universe.food.contains(&food_sprite_id.food) {
+            commands.entity(entity).despawn();
+        }
+    }
+
+    if food_sprites.iter().count() < universe.food.len() {
+        if let Some(pos) = universe.food.last() {
+            let new_sprite = create_sprite(Color::GREEN, &config, pos.0 as f32, pos.1 as f32);
             commands.spawn((
                 new_sprite,
-                BodySpriteId {
-                    snake_id: snake.id,
-                    body_id: i,
+                FoodSpriteId {
+                    food: Food(pos.0, pos.1),
                 },
             ));
         }
     }
 }
+
 fn display_grid(config: Res<Configuration>, universe: ResMut<Universe>, mut gizmos: Gizmos) {
     let uni = universe;
     for i in 1..uni.width {
@@ -144,39 +164,8 @@ fn display_grid(config: Res<Configuration>, universe: ResMut<Universe>, mut gizm
     }
 }
 
-fn spawn_body_sprite(
-    mut commands: Commands,
-    config: Res<Configuration>,
-    universe: ResMut<Universe>,
-    snake_id: usize,
-) {
-    let snake = universe.get_snake(snake_id);
-    let body_sprite = snake.positions[snake.positions.len() - 1];
-    let new_sprite = SpriteBundle {
-        sprite: Sprite {
-            color: Color::WHITE,
-            custom_size: Some(Vec2::new(config.cell_size, config.cell_size)),
-            ..default()
-        },
-        transform: Transform::from_translation(Vec3::new(
-            body_sprite.0 as f32 * config.cell_size - config.cell_size * config.width as f32 / 2.0,
-            body_sprite.1 as f32 * config.cell_size - config.cell_size * config.height as f32 / 2.0,
-            0.,
-        )),
-        ..default()
-    };
-    commands.spawn((
-        new_sprite,
-        BodySpriteId {
-            snake_id: snake.id,
-            body_id: snake.positions.len() - 1,
-        },
-    ));
-}
-
 fn snake_controls(keys: Res<ButtonInput<KeyCode>>, mut universe: ResMut<Universe>) {
     let current_direction = universe.get_snake(0).direction.clone();
-    universe.spawn_food();
     let direction = if keys.pressed(KeyCode::KeyW)
         && !matches!(
             current_direction,

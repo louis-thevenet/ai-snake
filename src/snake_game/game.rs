@@ -79,40 +79,42 @@ fn display_grid(config: Res<Configuration>, universe: ResMut<Universe>, mut gizm
 }
 
 fn snake_controls(keys: Res<ButtonInput<KeyCode>>, mut universe: ResMut<Universe>) {
-    let current_direction = universe.get_snake(0).direction.clone();
-    let direction = if keys.pressed(KeyCode::KeyW)
-        && !matches!(
-            current_direction,
-            crate::snake_core::universe::Direction::Down
-        ) {
-        crate::snake_core::universe::Direction::Up
-    } else if keys.pressed(KeyCode::KeyA)
-        && !matches!(
-            current_direction,
-            crate::snake_core::universe::Direction::Right
-        )
-    {
-        crate::snake_core::universe::Direction::Left
-    } else if keys.pressed(KeyCode::KeyS)
-        && !matches!(
-            current_direction,
+    if let Some(snake) = universe.get_snake(0) {
+        let current_direction = snake.direction.clone();
+        let direction = if keys.pressed(KeyCode::KeyW)
+            && !matches!(
+                current_direction,
+                crate::snake_core::universe::Direction::Down
+            ) {
             crate::snake_core::universe::Direction::Up
-        )
-    {
-        crate::snake_core::universe::Direction::Down
-    } else if keys.pressed(KeyCode::KeyD)
-        && !matches!(
-            current_direction,
+        } else if keys.pressed(KeyCode::KeyA)
+            && !matches!(
+                current_direction,
+                crate::snake_core::universe::Direction::Right
+            )
+        {
             crate::snake_core::universe::Direction::Left
-        )
-    {
-        crate::snake_core::universe::Direction::Right
-    } else {
-        current_direction
-    };
+        } else if keys.pressed(KeyCode::KeyS)
+            && !matches!(
+                current_direction,
+                crate::snake_core::universe::Direction::Up
+            )
+        {
+            crate::snake_core::universe::Direction::Down
+        } else if keys.pressed(KeyCode::KeyD)
+            && !matches!(
+                current_direction,
+                crate::snake_core::universe::Direction::Left
+            )
+        {
+            crate::snake_core::universe::Direction::Right
+        } else {
+            current_direction
+        };
 
-    let ate = universe.move_snake(0, direction);
-    if ate {
-        universe.spawn_food();
+        let ate = universe.move_snake(0, direction);
+        if ate {
+            universe.spawn_food();
+        }
     }
 }

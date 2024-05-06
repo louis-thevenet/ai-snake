@@ -36,27 +36,34 @@ fn create_sprite(color: Color, config: &Configuration, x: f32, y: f32) -> Sprite
     }
 }
 fn update_sprites(
-    mut query_body_sprites: Query<(&BodySpriteId, &mut Transform)>,
+    mut query_body_sprites: Query<(Entity, &BodySpriteId, &mut Transform)>,
     food_sprites: Query<(Entity, &FoodSpriteId)>,
     universe: ResMut<Universe>,
     config: Res<Configuration>,
     mut commands: Commands,
 ) {
     // update snakes
-    for (sprite_id, mut transform) in query_body_sprites.iter_mut() {
-        let snake = universe.get_snake(sprite_id.snake_id);
-        let (new_pos_x, new_pos_y) = snake.positions[sprite_id.body_id];
-        transform.translation = Vec3::new(
-            new_pos_x as f32 * config.cell_size - config.cell_size * universe.width as f32 / 2.0,
-            new_pos_y as f32 * config.cell_size - config.cell_size * universe.height as f32 / 2.0,
-            0.,
-        );
+    for (entity, sprite_id, mut transform) in query_body_sprites.iter_mut() {
+        match universe.get_snake(sprite_id.snake_id) {
+            Some(snake) => {
+                let (new_pos_x, new_pos_y) = snake.positions[sprite_id.body_id];
+                transform.translation = Vec3::new(
+                    new_pos_x as f32 * config.cell_size
+                        - config.cell_size * universe.width as f32 / 2.0,
+                    new_pos_y as f32 * config.cell_size
+                        - config.cell_size * universe.height as f32 / 2.0,
+                    0.,
+                );
+            }
+            None => {
+                commands.entity(entity).despawn();
+            }
+        }
     }
-
     for (i, snake) in universe.snakes.iter().enumerate() {
         if query_body_sprites
             .iter()
-            .map(|(id, _)| Some(id.snake_id == i))
+            .map(|(_, id, _)| Some(id.snake_id == i))
             .len()
             < snake.positions.len()
         {

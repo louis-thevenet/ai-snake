@@ -55,20 +55,26 @@ impl Universe {
     /// Move the snake and check if it ate something
     pub fn move_snake(&mut self, id: usize, dir: Direction) -> bool {
         let new_tail_pos = self.snakes[id].positions[self.snakes[id].positions.len() - 1];
-        self.snakes[id].move_head(dir, self.width, self.height);
-        let pos = self.snakes[id].positions[0];
-        for (i, food) in self.food.iter().enumerate() {
-            if pos == (food.0, food.1) {
-                self.snakes[id].add_tail(new_tail_pos);
-                self.food.remove(i);
-                return true;
+        match self.snakes[id].move_head(dir, self.width, self.height) {
+            Ok(_) => {
+                let pos = self.snakes[id].positions[0];
+                for (i, food) in self.food.iter().enumerate() {
+                    if pos == (food.0, food.1) {
+                        self.snakes[id].add_tail(new_tail_pos);
+                        self.food.remove(i);
+                        return true;
+                    }
+                }
+            }
+            Err(_) => {
+                self.snakes.remove(id);
             }
         }
         false
     }
 
-    pub fn get_snake(&self, id: usize) -> &Snake {
-        &self.snakes[id]
+    pub fn get_snake(&self, id: usize) -> Option<&Snake> {
+        self.snakes.get(id)
     }
 }
 

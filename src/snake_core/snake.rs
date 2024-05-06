@@ -11,6 +11,10 @@ pub struct Snake {
     pub positions: Vec<(u64, u64)>,
 }
 
+pub enum SnakeException {
+    DeadSnakeException,
+}
+
 impl Snake {
     pub fn new(width: u64, height: u64, id: usize) -> Self {
         Snake {
@@ -20,7 +24,12 @@ impl Snake {
         }
     }
 
-    pub fn move_head(&mut self, direction: Direction, width: u64, height: u64) {
+    pub fn move_head(
+        &mut self,
+        direction: Direction,
+        width: u64,
+        height: u64,
+    ) -> Result<(), SnakeException> {
         self.direction = direction;
         let (x, y) = match self.direction {
             Direction::Up => (0, height + 1),
@@ -34,10 +43,16 @@ impl Snake {
         }
 
         let old = self.positions[0];
-        self.positions[0] = (
+        let new = (
             (old.0 + (x + width)) % width,
             (old.1 + (y + height)) % height,
         );
+
+        if self.positions.contains(&new) {
+            return Err(SnakeException::DeadSnakeException);
+        }
+        self.positions[0] = new;
+        Ok(())
     }
 
     pub fn add_tail(&mut self, pos: (u64, u64)) {

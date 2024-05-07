@@ -12,7 +12,7 @@ pub fn spawn_camera(mut commands: Commands, config: Res<Configuration>) {
             scaling_mode: ScalingMode::FixedVertical(
                 (config.grid_config.height + 1) as f32
                     * cell_size
-                    * f32::sqrt(config.sim_config.population as f32),
+                    * f32::sqrt(config.simulation.population.len() as f32),
             ),
             ..Default::default()
         },
@@ -37,32 +37,32 @@ pub fn camera_controls(
         1.0
     };
 
-    if keys.pressed(KeyCode::ArrowUp) {
+    if keys.pressed(KeyCode::KeyW) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(0.0, 1.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
-    if keys.pressed(KeyCode::ArrowLeft) {
+    if keys.pressed(KeyCode::KeyA) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(-1.0, 0.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
-    if keys.pressed(KeyCode::ArrowDown) {
+    if keys.pressed(KeyCode::KeyS) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(0.0, -1.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
-    if keys.pressed(KeyCode::ArrowRight) {
+    if keys.pressed(KeyCode::KeyD) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(1.0, 0.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
 
-    if keys.pressed(KeyCode::NumpadAdd) {
+    if keys.pressed(KeyCode::KeyE) {
         projection.scale /= 1.1;
     }
 
-    if keys.pressed(KeyCode::NumpadSubtract) {
+    if keys.pressed(KeyCode::KeyQ) {
         projection.scale *= 1.1;
     }
 }

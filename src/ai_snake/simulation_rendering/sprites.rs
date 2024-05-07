@@ -1,24 +1,17 @@
-use bevy::app::{FixedPostUpdate, Plugin};
-
 use crate::{ai_snake::simulation::Configuration, snake_core::universe::Food};
 use bevy::prelude::*;
-pub struct RenderSpritePlugin;
+
 #[derive(Component)]
-struct BodySpriteId {
+pub struct BodySpriteId {
     snake_id: usize,
     body_id: usize,
 }
 
 #[derive(Component)]
-struct FoodSpriteId {
+pub struct FoodSpriteId {
     food: Food,
 }
 
-impl Plugin for RenderSpritePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(FixedPostUpdate, update_sprites);
-    }
-}
 fn create_sprite(color: Color, config: &Configuration, x: f32, y: f32) -> SpriteBundle {
     SpriteBundle {
         sprite: Sprite {
@@ -39,7 +32,7 @@ fn create_sprite(color: Color, config: &Configuration, x: f32, y: f32) -> Sprite
         ..default()
     }
 }
-fn update_sprites(
+pub fn update_sprites(
     mut query_body_sprites: Query<(Entity, &BodySpriteId, &mut Transform)>,
     food_sprites: Query<(Entity, &FoodSpriteId)>,
     config: Res<Configuration>,

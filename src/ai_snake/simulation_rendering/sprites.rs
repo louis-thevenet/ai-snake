@@ -22,13 +22,7 @@ fn create_sprite(color: Color, config: &Configuration, x: f32, y: f32) -> Sprite
             )),
             ..default()
         },
-        transform: Transform::from_translation(Vec3::new(
-            x * config.grid_config.cell_size
-                - config.grid_config.cell_size * config.grid_config.width as f32 / 2.0,
-            y * config.grid_config.cell_size
-                - config.grid_config.cell_size * config.grid_config.height as f32 / 2.0,
-            0.,
-        )),
+        transform: Transform::from_translation(Vec3::new(x, y, 0.)),
         ..default()
     }
 }
@@ -39,28 +33,48 @@ pub fn update_sprites(
     mut commands: Commands,
 ) {
     if let Some(config) = config {
-        for model_index in 0..config.simulation.population.len() {
-            let universe = &config.simulation.population[model_index].universe;
+        let line_length = (1.0 + config.simulation.population.len() as f64).sqrt() as usize;
 
-            // update snakes
-            for (entity, sprite_id, mut transform) in query_body_sprites.iter_mut() {
-                match universe.get_snake(sprite_id.snake_id) {
-                    Some(snake) => {
+        // update snakes
+        for (entity, sprite_id, mut transform) in query_body_sprites.iter_mut() {
+            let mut updated = false;
+            for model_index in 0..config.simulation.population.len() {
+                let universe = &config.simulation.population[model_index].universe;
+
+                if sprite_id.snake_id == config.simulation.population[model_index].id {
+                    updated = true;
+                    if let Some(snake) = config.simulation.population[model_index]
+                        .universe
+                        .get_snake(sprite_id.snake_id)
+                    {
                         let (new_pos_x, new_pos_y) = snake.positions[sprite_id.body_id];
                         transform.translation = Vec3::new(
-                            new_pos_x as f32 * config.grid_config.cell_size
+                            ((model_index * config.simulation.population.len()) as f32
+                                + new_pos_x as f32)
+                                * config.grid_config.cell_size
                                 - config.grid_config.cell_size * universe.width as f32 / 2.0,
-                            new_pos_y as f32 * config.grid_config.cell_size
+                            ((model_index * config.simulation.population.len()) as f32
+                                + new_pos_y as f32)
+                                * config.grid_config.cell_size
                                 - config.grid_config.cell_size * universe.height as f32 / 2.0,
                             0.,
                         );
                     }
-                    None => {
-                        commands.entity(entity).despawn();
-                    }
                 }
             }
-            for (i, snake) in universe.snakes.iter().enumerate() {
+            if !updated {
+                commands.entity(entity).despawn();
+            }
+        }
+        for model_index in 0..config.simulation.population.len() {
+            let universe = &config.simulation.population[model_index].universe;
+
+            for (i, snake) in config.simulation.population[model_index]
+                .universe
+                .snakes
+                .iter()
+                .enumerate()
+            {
                 if query_body_sprites
                     .iter()
                     .map(|(_, id, _)| Some(id.snake_id == i))
@@ -68,8 +82,20 @@ pub fn update_sprites(
                     < snake.positions.len()
                 {
                     if let Some(pos) = snake.positions.last() {
-                        let new_sprite =
-                            create_sprite(Color::WHITE, &config, pos.0 as f32, pos.1 as f32);
+                        let x_grid_offset = ((model_index % line_length)
+                            * config.grid_config.width as usize)
+                            as f32
+                            * config.grid_config.cell_size;
+                        let y_grid_offset = ((model_index / line_length)
+                            * config.grid_config.width as usize)
+                            as f32
+                            * config.grid_config.cell_size;
+
+                        let x = x_grid_offset + (pos.0 as f32) * config.grid_config.cell_size
+                            - config.grid_config.cell_size * universe.width as f32 / 2.0;
+                        let y = y_grid_offset + (pos.1 as f32) * config.grid_config.cell_size
+                            - config.grid_config.cell_size * universe.height as f32 / 2.0;
+                        let new_sprite = create_sprite(Color::WHITE, &config, x, y);
 
                         commands.spawn((
                             new_sprite,
@@ -91,8 +117,16 @@ pub fn update_sprites(
 
             if food_sprites.iter().count() < universe.food.len() {
                 if let Some(pos) = universe.food.last() {
-                    let new_sprite =
-                        create_sprite(Color::GREEN, &config, pos.0 as f32, pos.1 as f32);
+                    let x = ((model_index * config.simulation.population.len()) as f32
+                        + pos.0 as f32)
+                        * config.grid_config.cell_size
+                        - config.grid_config.cell_size * universe.width as f32 / 2.0;
+                    let y = ((model_index * config.simulation.population.len()) as f32
+                        + pos.1 as f32)
+                        * config.grid_config.cell_size
+                        - config.grid_config.cell_size * universe.height as f32 / 2.0;
+
+                    let new_sprite = create_sprite(Color::GREEN, &config, x, y);
                     commands.spawn((
                         new_sprite,
                         FoodSpriteId {

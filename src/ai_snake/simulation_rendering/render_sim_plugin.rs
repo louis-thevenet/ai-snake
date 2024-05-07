@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::ai_snake::{simulation::setup_simulation, ui::SimulationState};
+use crate::ai_snake::ui::SimulationState;
 
 use super::{
     camera::{camera_controls, camera_update, spawn_camera},

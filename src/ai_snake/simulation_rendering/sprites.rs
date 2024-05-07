@@ -1,7 +1,9 @@
 use bevy::app::{FixedPostUpdate, Plugin};
 
-use crate::ai_snake::simulation::Configuration;
-use crate::snake_core::universe::{Food, Universe};
+use crate::{
+    ai_snake::simulation::Configuration,
+    snake_core::universe::{Food, Universe},
+};
 use bevy::prelude::*;
 pub struct RenderSpritePlugin;
 #[derive(Component)]

@@ -1,7 +1,18 @@
-use super::simulation::Configuration;
 use bevy::{prelude::*, render::camera::ScalingMode};
+
+use crate::ai_snake::simulation::Configuration;
+
 #[derive(Component)]
 pub struct MainCamera;
+
+pub struct SimCameraPlugin;
+
+impl Plugin for SimCameraPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(PostStartup, spawn_camera)
+            .add_systems(Update, camera_controls);
+    }
+}
 
 pub fn spawn_camera(mut commands: Commands, config: Res<Configuration>) {
     let cell_size = config.grid_config.cell_size;

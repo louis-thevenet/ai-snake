@@ -1,15 +1,11 @@
-use std::time::Duration;
+use bevy::prelude::*;
 
-use bevy::{prelude::*, time::common_conditions::on_timer};
-
-use super::camera::{camera_controls, spawn_camera};
-use super::genetic::{self, GeneticModel};
-use super::neural_network::{Layer, NeuralNetwork};
-use super::simulation_rendering::grids::display_grid;
+use super::neural_network::neural_network::{ActionFunction, Layer, NeuralNetwork};
+use super::simulation_rendering::camera::SimCameraPlugin;
 use super::simulation_rendering::sprites::RenderSpritePlugin;
-use crate::snake_core::{snake::Snake, universe::Universe};
-#[derive(Resource)]
+use super::{neural_network::genetic::GeneticModel, simulation_rendering::grids::display_grid};
 
+#[derive(Resource)]
 pub struct Configuration {
     pub simulation: GeneticModel,
     pub grid_config: GridConfiguration,
@@ -23,9 +19,10 @@ pub struct AISnakePlugin;
 
 impl Plugin for AISnakePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RenderSpritePlugin);
-        app.add_systems(Startup, (setup_simulation, spawn_camera).chain())
-            .add_systems(Update, (camera_controls, display_grid));
+        app.add_plugins(RenderSpritePlugin)
+            .add_plugins(SimCameraPlugin)
+            .add_systems(Startup, setup_simulation)
+            .add_systems(Update, display_grid);
     }
 }
 
@@ -38,7 +35,7 @@ fn setup_simulation(mut commands: Commands) {
         cell_size: 16.0,
     };
 
-    let population_count = 10;
+    let population_count = 1;
 
     let mut brains: Vec<NeuralNetwork> = vec![];
     for _ in 0..population_count {
@@ -52,12 +49,7 @@ fn setup_simulation(mut commands: Commands) {
             }
         });
         let mut brain = NeuralNetwork::new();
-        brain.add_layer(Layer::new(
-            2,
-            4,
-            weights,
-            super::neural_network::ActionFunction::Relu,
-        ));
+        brain.add_layer(Layer::new(2, 4, weights, ActionFunction::Relu));
         brains.push(brain);
     }
     let genetic_model = GeneticModel::new(&grid_config, population_count, brains);

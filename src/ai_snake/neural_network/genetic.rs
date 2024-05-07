@@ -1,4 +1,6 @@
-use super::{model::Model, neural_network::NeuralNetwork, simulation::GridConfiguration};
+use crate::ai_snake::simulation::GridConfiguration;
+
+use super::{model::Model, neural_network::NeuralNetwork};
 
 pub struct GeneticModel {
     pub mutation_factor: f64,

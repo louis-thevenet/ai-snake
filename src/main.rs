@@ -1,4 +1,4 @@
-use ai_snake::simulation::AISnakePlugin;
+use ai_snake::ai_snake_plugin::AISnakePlugin;
 use bevy::{app::App, DefaultPlugins};
 use snake_game::game::SnakeGamePlugin;
 mod ai_snake;

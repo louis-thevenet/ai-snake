@@ -5,23 +5,36 @@ use crate::ai_snake::simulation::Configuration;
 #[derive(Component)]
 pub struct MainCamera;
 
-pub fn spawn_camera(mut commands: Commands, config: Res<Configuration>) {
-    let cell_size = config.grid_config.cell_size;
-
+pub fn spawn_camera(mut commands: Commands) {
     let cam = Camera2dBundle {
-        transform: Transform::from_xyz(cell_size / 2.0, cell_size / 2.0, 1.0),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
         projection: OrthographicProjection {
-            scaling_mode: ScalingMode::FixedVertical(
-                (config.grid_config.height + 1) as f32
-                    * cell_size
-                    * f32::sqrt(config.simulation.population.len() as f32),
-            ),
+            scaling_mode: ScalingMode::FixedVertical(1.0),
             ..Default::default()
         },
         ..default()
     };
 
     commands.spawn((cam, MainCamera));
+}
+
+pub fn camera_update(
+    config: Option<Res<Configuration>>,
+    mut query_projection_camera: Query<&mut OrthographicProjection, With<MainCamera>>,
+    mut query_transform_camera: Query<&mut Transform, With<MainCamera>>,
+) {
+    if let Some(config) = config {
+        query_projection_camera.single_mut().scaling_mode = ScalingMode::FixedVertical(
+            (config.grid_config.height + 1) as f32
+                * config.grid_config.cell_size
+                * f32::sqrt(config.simulation.population.len() as f32),
+        );
+        query_transform_camera.single_mut().translation = Vec3::new(
+            config.grid_config.cell_size / 2.0,
+            config.grid_config.cell_size / 2.0,
+            1.0,
+        );
+    }
 }
 
 pub fn camera_controls(

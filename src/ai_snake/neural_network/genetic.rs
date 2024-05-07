@@ -10,7 +10,7 @@ pub struct GeneticModel {
 impl GeneticModel {
     pub fn new(
         grid_config: &GridConfiguration,
-        population_count: usize,
+        population_count: u64,
         brain: Vec<NeuralNetwork>,
     ) -> Self {
         let mut population: Vec<Model> = Vec::new();
@@ -18,7 +18,7 @@ impl GeneticModel {
             population.push(Model::new(
                 grid_config.width,
                 grid_config.height,
-                brain[i].clone(),
+                brain[i as usize].clone(),
             ));
         });
         GeneticModel {

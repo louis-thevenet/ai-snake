@@ -27,6 +27,14 @@ pub struct Universe {
 }
 
 impl Universe {
+    pub fn new_empty(width: u64, height: u64) -> Universe {
+        Universe {
+            width,
+            height,
+            snakes: vec![],
+            food: Vec::new(),
+        }
+    }
     pub fn new(width: u64, height: u64, snakes: Vec<Snake>) -> Universe {
         Universe {
             width,

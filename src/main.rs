@@ -2,7 +2,6 @@ use ai_snake::simulation::AISnakePlugin;
 use bevy::{app::App, DefaultPlugins};
 use snake_game::game::SnakeGamePlugin;
 mod ai_snake;
-mod rendering;
 mod snake_core;
 mod snake_game;
 fn main() {

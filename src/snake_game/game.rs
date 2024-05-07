@@ -2,8 +2,10 @@ use std::time::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
 
-use super::camera::{camera_controls, spawn_camera};
-use crate::rendering::sprites::RenderSpritePlugin;
+use super::{
+    camera::{camera_controls, spawn_camera},
+    game_rendering::sprites::RenderSpritePlugin,
+};
 use crate::snake_core::{snake::Snake, universe::Universe};
 #[derive(Resource)]
 pub struct Configuration {

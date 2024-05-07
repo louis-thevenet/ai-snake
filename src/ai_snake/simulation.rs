@@ -44,7 +44,7 @@ fn setup_simulation(mut commands: Commands) {
         let mut weights = vec![];
         (0..input).for_each(|k| {
             weights.push(vec![]);
-            for l in 0..output {
+            for _ in 0..output {
                 weights[k].push(rand::random::<f64>());
             }
         });

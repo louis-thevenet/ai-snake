@@ -38,7 +38,7 @@ impl NeuralNetwork {
         for layer in &mut self.layers {
             for i in 0..layer.output_dim {
                 for j in 0..layer.input_dim {
-                    let mut rand = rand::random::<f64>();
+                    let rand = rand::random::<f64>();
                     if rand < mutation_factor {
                         layer.weights[i][j] += rand::random::<f64>() * 2. - 1.;
                     }
@@ -67,11 +67,11 @@ impl Layer {
     pub fn forward(&self, input: Vec<f64>) -> Vec<f64> {
         let mut output = vec![0.0; self.output_dim];
 
-        for i in 0..self.output_dim {
-            for j in 0..self.input_dim {
+        (0..self.output_dim).for_each(|i| {
+            (0..self.input_dim).for_each(|j| {
                 output[i] += input[j] * self.weights[i][j];
-            }
-        }
+            });
+        });
 
         match self.activation {
             ActionFunction::Relu => {

@@ -3,18 +3,16 @@ use std::time::Duration;
 use bevy::{prelude::*, time::common_conditions::on_timer};
 
 use super::camera::{camera_controls, spawn_camera};
+use super::genetic::{self, GeneticModel};
+use super::neural_network::{Layer, NeuralNetwork};
 use crate::rendering::sprites::RenderSpritePlugin;
 use crate::snake_core::{snake::Snake, universe::Universe};
 #[derive(Resource)]
+
 pub struct Configuration {
-    pub sim_config: SimulationConfig,
+    pub simulation: GeneticModel,
     pub grid_config: GridConfiguration,
 }
-pub struct SimulationConfig {
-    pub universes: Vec<Universe>,
-    pub population: u32,
-}
-
 pub struct GridConfiguration {
     pub width: u64,
     pub height: u64,
@@ -33,31 +31,48 @@ impl Plugin for AISnakePlugin {
 fn setup_game(mut commands: Commands) {
     let width = 32;
     let height = 32;
-    let mut config = Configuration {
-        sim_config: SimulationConfig {
-            universes: vec![Universe::new(width, height, vec![])],
-            population: 8,
-        },
-        grid_config: GridConfiguration {
-            width,
-            height,
-            cell_size: 16.0,
-        },
+    let grid_config = GridConfiguration {
+        width,
+        height,
+        cell_size: 16.0,
     };
 
-    for i in 0..config.sim_config.population as usize {
-        config
-            .sim_config
-            .universes
-            .insert(i, Universe::new(width, height, vec![]));
+    let population_count = 10;
+
+    let mut brains: Vec<NeuralNetwork> = vec![];
+    for _ in 0..population_count {
+        let input = 8;
+        let output = 8;
+        let mut weights = vec![];
+        (0..input).for_each(|k| {
+            weights.push(vec![]);
+            for l in 0..output {
+                weights[k].push(rand::random::<f64>());
+            }
+        });
+        let mut brain = NeuralNetwork::new();
+        brain.add_layer(Layer::new(
+            2,
+            4,
+            weights,
+            super::neural_network::ActionFunction::Relu,
+        ));
+        brains.push(brain);
     }
+    let genetic_model = GeneticModel::new(&grid_config, population_count, brains);
+
+    let config = Configuration {
+        simulation: genetic_model,
+        grid_config,
+    };
+
     commands.insert_resource(config);
 }
 fn display_grid(config: Res<Configuration>, mut gizmos: Gizmos) {
-    let universes = &config.sim_config.universes;
-    let line_length = (1.0 + config.sim_config.population as f64).sqrt() as usize;
+    let population = &config.simulation.population;
+    let line_length = (1.0 + config.simulation.population.len() as f64).sqrt() as usize;
 
-    for index in 0..universes.len() {
+    for index in 0..population.len() {
         let x = ((index % line_length) * config.grid_config.width as usize) as f32
             * config.grid_config.cell_size;
         let y = ((index / line_length) * config.grid_config.width as usize) as f32

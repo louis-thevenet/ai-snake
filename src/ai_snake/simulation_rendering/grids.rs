@@ -1,6 +1,20 @@
-use bevy::{ecs::system::Res, gizmos::gizmos::Gizmos, math::Vec2, render::color::Color};
+use bevy::{
+    app::{App, Plugin, Update},
+    ecs::system::Res,
+    gizmos::gizmos::Gizmos,
+    math::Vec2,
+    render::color::Color,
+};
 
 use crate::ai_snake::simulation::Configuration;
+
+pub struct ShowGridPlugin;
+
+impl Plugin for ShowGridPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, display_grid);
+    }
+}
 
 pub fn display_grid(config: Res<Configuration>, mut gizmos: Gizmos) {
     let population = &config.simulation.population;

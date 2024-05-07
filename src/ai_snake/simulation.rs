@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::neural_network::neural_network::{ActionFunction, Layer, NeuralNetwork};
 use super::simulation_rendering::camera::SimCameraPlugin;
+use super::simulation_rendering::grids::ShowGridPlugin;
 use super::simulation_rendering::sprites::RenderSpritePlugin;
 use super::{neural_network::genetic::GeneticModel, simulation_rendering::grids::display_grid};
 
@@ -19,10 +20,8 @@ pub struct AISnakePlugin;
 
 impl Plugin for AISnakePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RenderSpritePlugin)
-            .add_plugins(SimCameraPlugin)
-            .add_systems(Startup, setup_simulation)
-            .add_systems(Update, display_grid);
+        app.add_plugins((SimCameraPlugin, RenderSpritePlugin, ShowGridPlugin))
+            .add_systems(Startup, setup_simulation);
     }
 }
 

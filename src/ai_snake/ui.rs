@@ -9,7 +9,7 @@ use bevy_egui::{
 };
 
 use super::simulation::Configuration;
-use super::{simulation::setup_simulation, simulation_rendering::camera::camera_update};
+use super::simulation_rendering::camera::camera_update;
 
 #[derive(Default, States, Debug, Hash, Eq, Clone, Copy, PartialEq)]
 
@@ -17,13 +17,14 @@ pub enum SimulationState {
     #[default]
     Stopped,
     StartUp,
+    Evolving,
     Running,
     Paused,
 }
 #[derive(Default, Resource)]
-struct AppConfig {
-    grid_size: u64,
-    population_size: u64,
+pub struct AppConfig {
+    pub grid_size: u64,
+    pub population_size: u64,
 }
 
 pub struct UIPlugin;
@@ -33,30 +34,12 @@ impl Plugin for UIPlugin {
             .init_state::<SimulationState>()
             .add_plugins(EguiPlugin)
             .add_systems(Startup, configure_app_state)
-            .add_systems(Update, (build_ui, ui_controls))
-            .add_systems(
-                Update,
-                start_set_up.run_if(in_state(SimulationState::StartUp)),
-            );
+            .add_systems(Update, (build_ui, ui_controls));
     }
 }
-
-fn start_set_up(
-    mut commands: Commands,
-    app_config: ResMut<AppConfig>,
-    mut next_state: ResMut<NextState<SimulationState>>,
-) {
-    let config = setup_simulation(
-        app_config.grid_size,
-        app_config.grid_size,
-        app_config.population_size,
-    );
-    commands.insert_resource(config);
-
-    next_state.set(SimulationState::Running);
-}
 fn configure_app_state(mut app_state: ResMut<AppConfig>) {
-    app_state.population_size = 10;
+    app_state.grid_size = 32;
+    app_state.population_size = 1;
 }
 
 fn build_ui(
@@ -75,6 +58,7 @@ fn build_ui(
             ui.heading("Configuration");
             match sim_state.get() {
                 SimulationState::StartUp => {}
+                SimulationState::Evolving => {}
                 SimulationState::Running => {
                     running_ui(ui, &mut next_state);
                 }

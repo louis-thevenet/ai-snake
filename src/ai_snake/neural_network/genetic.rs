@@ -18,6 +18,7 @@ impl GeneticModel {
             population.push(Model::new(
                 grid_config.width,
                 grid_config.height,
+                i as usize,
                 brain[i as usize].clone(),
             ));
         });

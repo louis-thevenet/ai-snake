@@ -65,6 +65,9 @@ impl Layer {
         }
     }
     pub fn forward(&self, input: Vec<f64>) -> Vec<f64> {
+        if input.is_empty() {
+            return vec![];
+        }
         let mut output = vec![0.0; self.output_dim];
 
         (0..self.output_dim).for_each(|i| {

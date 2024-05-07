@@ -43,7 +43,9 @@ impl Universe {
             food: Vec::new(),
         }
     }
-
+    pub fn add_snake(&mut self, snake: Snake) {
+        self.snakes.push(snake);
+    }
     pub fn spawn_food(&mut self) -> (u64, u64) {
         let mut rng = rand::thread_rng();
         let x = rng.gen_range(0..self.width);

@@ -88,7 +88,7 @@ fn setup_simulation(width: u64, height: u64, population_count: u64) -> Configura
     for i in 0..population_count as usize {
         let snake = Snake::new(width, height, i);
         genetic_model.population[i].add_snake(snake);
-        //genetic_model.population[i].universe.spawn_food();
+        genetic_model.population[i].universe.spawn_food();
     }
 
     Configuration {

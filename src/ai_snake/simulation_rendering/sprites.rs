@@ -66,6 +66,23 @@ pub fn update_sprites(
                 commands.entity(entity).despawn();
             }
         }
+
+        // update food
+        for (entity, food_sprite_id) in food_sprites.into_iter() {
+            let mut exists = false;
+            for model_index in 0..config.simulation.population.len() {
+                let universe = &config.simulation.population[model_index].universe;
+
+                if universe.food.contains(&food_sprite_id.food) {
+                    exists = true;
+                }
+            }
+            if !exists {
+                commands.entity(entity).despawn();
+            }
+        }
+
+        // new snake sprites
         for model_index in 0..config.simulation.population.len() {
             let universe = &config.simulation.population[model_index].universe;
 
@@ -107,23 +124,24 @@ pub fn update_sprites(
                     }
                 }
             }
+        }
 
-            // update food
-            for (entity, food_sprite_id) in food_sprites.into_iter() {
-                if !universe.food.contains(&food_sprite_id.food) {
-                    commands.entity(entity).despawn();
-                }
-            }
+        // new food sprites
+        for model_index in 0..config.simulation.population.len() {
+            let universe = &config.simulation.population[model_index].universe;
 
             if food_sprites.iter().count() < universe.food.len() {
                 if let Some(pos) = universe.food.last() {
-                    let x = ((model_index * config.simulation.population.len()) as f32
-                        + pos.0 as f32)
-                        * config.grid_config.cell_size
+                    let x_grid_offset =
+                        ((model_index % line_length) * config.grid_config.width as usize) as f32
+                            * config.grid_config.cell_size;
+                    let y_grid_offset =
+                        ((model_index / line_length) * config.grid_config.width as usize) as f32
+                            * config.grid_config.cell_size;
+
+                    let x = x_grid_offset + (pos.0 as f32) * config.grid_config.cell_size
                         - config.grid_config.cell_size * universe.width as f32 / 2.0;
-                    let y = ((model_index * config.simulation.population.len()) as f32
-                        + pos.1 as f32)
-                        * config.grid_config.cell_size
+                    let y = y_grid_offset + (pos.1 as f32) * config.grid_config.cell_size
                         - config.grid_config.cell_size * universe.height as f32 / 2.0;
 
                     let new_sprite = create_sprite(Color::GREEN, &config, x, y);

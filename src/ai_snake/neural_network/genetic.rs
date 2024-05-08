@@ -14,6 +14,7 @@ impl GeneticModel {
         grid_config: &GridConfiguration,
         allowed_moves_before_evolution: u32,
         population_count: u64,
+        mutation_factor: f64,
         brain: Vec<NeuralNetwork>,
     ) -> Self {
         let mut population: Vec<Model> = Vec::new();
@@ -27,10 +28,11 @@ impl GeneticModel {
             ));
         });
         GeneticModel {
-            mutation_factor: 0.1,
+            mutation_factor,
             population,
         }
     }
+
     fn mutate_population(&mut self) {
         for model in &mut self.population {
             model.brain.mutate(self.mutation_factor);
@@ -43,7 +45,7 @@ impl GeneticModel {
             .for_each(|m| m.brain = best_model.brain.clone());
     }
 
-    fn evolve(&mut self) {
+    pub fn evolve(&mut self) -> u32 {
         let mut best_model_index = 0;
         for i in 0..self.population.len() {
             if self.population[i].score > self.population[best_model_index].score {
@@ -54,6 +56,7 @@ impl GeneticModel {
             self.population[i].brain = self.population[best_model_index].brain.clone();
         }
         self.mutate_population();
+        self.population[best_model_index].score
     }
 }
 

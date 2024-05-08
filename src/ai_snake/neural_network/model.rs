@@ -10,7 +10,9 @@ pub struct Model {
     pub universe: Universe,
     pub brain: NeuralNetwork,
     pub score: u32,
+    pub allowed_moves_number: u32,
     pub moves_left: u32,
+
     pub id: usize,
 }
 
@@ -22,14 +24,22 @@ impl Model {
             universe,
             brain,
             score,
+            allowed_moves_number: moves_left,
             moves_left,
             id,
         }
     }
-
+    pub fn reset(&mut self) {
+        self.add_snake(Snake::new(self.universe.width, self.universe.height, 0));
+        self.score = 0;
+        self.moves_left = self.allowed_moves_number;
+        if self.universe.food.is_empty() {
+            self.universe.spawn_food();
+        }
+    }
     pub fn compute_input(&self, width: u64, height: u64) -> Option<Vec<f64>> {
         let mut input = vec![];
-        let vision_range: i64 = 20;
+        let vision_range: i64 = 10;
         if let Some(snake) = self.universe.get_snake(0) {
             for u in -1..=1 {
                 for v in -1..=1 {
@@ -63,7 +73,7 @@ impl Model {
             }
             Some(input)
         } else {
-            println!("No snake in model id {}", self.id);
+            //println!("No snake in model id {}", self.id);
             None
         }
     }
@@ -80,8 +90,13 @@ impl Model {
         if self.moves_left == 0 {
             self.universe.kill_snake(0);
         } else {
-            self.universe.move_snake(0, direction);
+            let res = self.universe.move_snake(0, direction);
             self.moves_left -= 1;
+
+            if res {
+                self.score += 1;
+                self.universe.spawn_food();
+            }
         }
     }
 }

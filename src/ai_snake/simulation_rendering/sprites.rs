@@ -97,6 +97,7 @@ pub fn update_sprites(
                                 let pixel_index = 4 * (y as u32 * width + x as u32) as usize;
 
                                 img.data[pixel_index] = 255;
+
                                 img.data[pixel_index + 3] = 255;
                             }
                         }

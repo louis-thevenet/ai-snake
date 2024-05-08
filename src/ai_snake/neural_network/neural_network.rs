@@ -54,7 +54,7 @@ impl NeuralNetwork {
                 for j in 0..layer.input_dim {
                     let rand = rand::random::<f64>();
                     if rand < mutation_factor {
-                        layer.weights[i][j] += rand::random::<f64>() * 2. - 1.;
+                        layer.weights[j][i] += rand::random::<f64>() * 2. - 1.;
                     }
                 }
             }

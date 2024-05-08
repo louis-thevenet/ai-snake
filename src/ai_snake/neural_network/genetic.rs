@@ -45,18 +45,21 @@ impl GeneticModel {
             .for_each(|m| m.brain = best_model.brain.clone());
     }
 
-    pub fn evolve(&mut self) -> u32 {
+    pub fn evolve(&mut self) -> (u32, u32) {
         let mut best_model_index = 0;
+        let mut average_score = 0;
         for i in 0..self.population.len() {
             if self.population[i].score > self.population[best_model_index].score {
                 best_model_index = i;
             }
+            average_score += self.population[i].score;
         }
+        average_score = (average_score as f32 / self.population.len() as f32) as u32;
         for i in 0..self.population.len() {
             self.population[i].brain = self.population[best_model_index].brain.clone();
         }
         self.mutate_population();
-        self.population[best_model_index].score
+        (self.population[best_model_index].score, average_score)
     }
 }
 

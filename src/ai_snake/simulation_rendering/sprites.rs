@@ -78,7 +78,6 @@ pub fn update_sprites(
             let cell_size = config.grid_config.cell_size as usize;
 
             img.data = vec![0; (width * height * 4) as usize];
-
             (0..population.len()).for_each(|index| {
                 let x_offset =
                     ((index % line_length) * config.grid_config.width as usize) * cell_size;
@@ -95,9 +94,7 @@ pub fn update_sprites(
                                     + l;
 
                                 let pixel_index = 4 * (y as u32 * width + x as u32) as usize;
-
                                 img.data[pixel_index] = 255;
-
                                 img.data[pixel_index + 3] = 255;
                             }
                         }

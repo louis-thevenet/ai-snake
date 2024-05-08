@@ -1,15 +1,9 @@
-use std::any::Any;
-
-use bevy::ecs::system::RunSystemOnce;
+use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy::{ecs::system, prelude::*};
 use bevy_egui::{
     egui::{self, Ui},
     EguiContexts, EguiPlugin,
 };
-
-use super::simulation::Configuration;
-use super::simulation_rendering::camera::camera_update;
 
 #[derive(Default, States, Debug, Hash, Eq, Clone, Copy, PartialEq)]
 
@@ -23,8 +17,12 @@ pub enum SimulationState {
 }
 #[derive(Default, Resource)]
 pub struct AppConfig {
+    pub generation_number: u64,
+    pub best_score: u64,
+    pub average_score: u64,
     pub grid_size: u64,
     pub population_size: u64,
+    pub current_moves: u64,
     pub allowed_moves: u32,
 }
 
@@ -39,9 +37,13 @@ impl Plugin for UIPlugin {
     }
 }
 fn configure_app_state(mut app_state: ResMut<AppConfig>) {
+    app_state.generation_number = 0;
+    app_state.best_score = 0;
+    app_state.average_score = 0;
     app_state.grid_size = 32;
-    app_state.population_size = 1;
-    app_state.allowed_moves = 30;
+    app_state.population_size = 2000;
+    app_state.current_moves = 0;
+    app_state.allowed_moves = 300;
 }
 
 fn build_ui(
@@ -62,10 +64,10 @@ fn build_ui(
                 SimulationState::StartUp => {}
                 SimulationState::Evolving => {}
                 SimulationState::Running => {
-                    running_ui(ui, &mut next_state);
+                    running_ui(ui, &mut next_state, app_config);
                 }
                 SimulationState::Paused => {
-                    paused_ui(ui, &mut next_state);
+                    paused_ui(ui, &mut next_state, app_config);
                 }
                 SimulationState::Stopped => {
                     stopped_ui(ui, app_config, &mut next_state);
@@ -86,9 +88,9 @@ fn stopped_ui(
 ) {
     ui.label("Simulation is not running");
     ui.add(egui::Slider::new(&mut app_config.grid_size, 0..=128).text("grid size"));
-    ui.add(egui::Slider::new(&mut app_config.population_size, 0..=1000).text("population size"));
+    ui.add(egui::Slider::new(&mut app_config.population_size, 0..=5000).text("population size"));
     ui.add(
-        egui::Slider::new(&mut app_config.allowed_moves, 0..=256)
+        egui::Slider::new(&mut app_config.allowed_moves, 0..=4096)
             .text("allowed moves before evolution"),
     );
 
@@ -97,17 +99,38 @@ fn stopped_ui(
     }
 }
 
-fn running_ui(ui: &mut Ui, next_state: &mut NextState<SimulationState>) {
+fn running_ui(
+    ui: &mut Ui,
+    next_state: &mut NextState<SimulationState>,
+    mut app_config: ResMut<AppConfig>,
+) {
     ui.label("Simulation is running");
+    ui.label("Agents number: ".to_owned() + &app_config.population_size.to_string());
+    ui.label("Generation #".to_owned() + &app_config.generation_number.to_string());
+    ui.label("Best Score: ".to_owned() + &app_config.best_score.to_string());
+    ui.label("Average Score: ".to_owned() + &app_config.average_score.to_string());
+
+    ui.add(egui::ProgressBar::new(
+        app_config.current_moves as f32 / app_config.allowed_moves as f32,
+    ));
+
     if ui.button("Pause").clicked() {
         next_state.set(SimulationState::Paused)
     }
 }
-fn paused_ui(ui: &mut Ui, next_state: &mut NextState<SimulationState>) {
+fn paused_ui(
+    ui: &mut Ui,
+    next_state: &mut NextState<SimulationState>,
+    mut app_config: ResMut<AppConfig>,
+) {
     ui.label("Simulation is paused");
     if ui.button("Resume").clicked() {
         next_state.set(SimulationState::Running)
     }
+    ui.add(
+        egui::Slider::new(&mut app_config.allowed_moves, 0..=4096)
+            .text("allowed moves before evolution"),
+    );
 }
 fn ui_controls(
     state: ResMut<AppConfig>,

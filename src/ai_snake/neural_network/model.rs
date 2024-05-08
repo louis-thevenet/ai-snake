@@ -29,48 +29,61 @@ impl Model {
             id,
         }
     }
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, moves_left: u32) {
         self.add_snake(Snake::new(self.universe.width, self.universe.height, 0));
         self.score = 0;
+        self.allowed_moves_number = moves_left;
         self.moves_left = self.allowed_moves_number;
-        if self.universe.food.is_empty() {
-            self.universe.spawn_food();
-        }
+        self.universe.food = vec![];
+        self.universe.spawn_food();
     }
     pub fn compute_input(&self, width: u64, height: u64) -> Option<Vec<f64>> {
         let mut input = vec![];
-        let vision_range: i64 = 10;
+        let vision_range: i64 = 40;
         if let Some(snake) = self.universe.get_snake(0) {
+            let mut counter = 0;
             for u in -1..=1 {
                 for v in -1..=1 {
                     if u == 0 && v == 0 {
                         continue;
                     }
                     input.push(0.0);
-                    for i in 1..vision_range {
+                    input.push(0.0);
+
+                    for i in 1..=vision_range {
                         let pos = (
-                            snake.positions[0].0 + ((i * u + width as i64) as u64) % width,
-                            snake.positions[0].1 + ((i * v + height as i64) as u64) % height,
+                            (snake.positions[0].0 + (i * u + width as i64) as u64) % width,
+                            (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
                         );
                         if snake.is_in_pos(pos) {
-                            *input.last_mut().unwrap() = i as f64;
+                            input[counter] = i as f64;
                             break;
                         }
                     }
-
-                    input.push(0.0);
-                    for i in 1..vision_range {
+                    for i in 1..=vision_range {
                         let pos = (
-                            snake.positions[0].0 + ((i * u + width as i64) as u64) % width,
-                            snake.positions[0].1 + ((i * v + height as i64) as u64) % height,
+                            (snake.positions[0].0 + (i * u + width as i64) as u64) % width,
+                            (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
                         );
                         if self.universe.food.contains(&Food(pos.0, pos.1)) {
-                            *input.last_mut().unwrap() = i as f64;
+                            input[counter + 1] = i as f64;
                             break;
                         }
                     }
+                    counter += 2;
                 }
             }
+
+            // for i in 0..16 {
+            //     for u in -1..=1 {
+            //         for v in -1..=1 {
+            //             if u == 0 && v == 0 {
+            //                 continue;
+            //             }
+            //             println!("{},{} -> {}", u, v, input[i]);
+            //         }
+            //     }
+            // }
             Some(input)
         } else {
             //println!("No snake in model id {}", self.id);
@@ -90,12 +103,15 @@ impl Model {
         if self.moves_left == 0 {
             self.universe.kill_snake(0);
         } else {
-            let res = self.universe.move_snake(0, direction);
-            self.moves_left -= 1;
-
-            if res {
-                self.score += 1;
-                self.universe.spawn_food();
+            match self.universe.move_snake(0, direction) {
+                Ok(true) => {
+                    self.score += 1;
+                    self.universe.spawn_food();
+                }
+                Ok(false) => self.moves_left -= 1,
+                Err(_) => {
+                    self.moves_left = 0;
+                }
             }
         }
     }

@@ -115,8 +115,13 @@ fn snake_controls(keys: Res<ButtonInput<KeyCode>>, mut universe: ResMut<Universe
         };
 
         let ate = universe.move_snake(0, direction);
-        if ate {
-            universe.spawn_food();
+        match ate {
+            Ok(true) => {
+                universe.spawn_food();
+                ()
+            }
+
+            _ => (),
         }
     }
 }

@@ -24,7 +24,7 @@ pub struct SimulationPlugin;
 impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 start_set_up.run_if(in_state(SimulationState::StartUp)),
                 one_step_simulation.run_if(in_state(SimulationState::Running)),
@@ -35,18 +35,19 @@ impl Plugin for SimulationPlugin {
 }
 
 fn one_step_simulation(
-    mut app_config: ResMut<Configuration>,
+    mut sim_config: ResMut<Configuration>,
     mut next_state: ResMut<NextState<SimulationState>>,
+    mut app_config: ResMut<AppConfig>,
 ) {
-    let width = app_config.grid_config.width;
-    let height = app_config.grid_config.height;
+    let width = sim_config.grid_config.width;
+    let height = sim_config.grid_config.height;
     let direction = [
         crate::snake_core::universe::Direction::Up,
         crate::snake_core::universe::Direction::Down,
         crate::snake_core::universe::Direction::Left,
         crate::snake_core::universe::Direction::Right,
     ];
-    let sim = &mut app_config.simulation;
+    let sim = &mut sim_config.simulation;
 
     let mut finished = true;
     for i in 0..sim.population.len() {
@@ -68,26 +69,34 @@ fn one_step_simulation(
                 .0;
             sim.population[i].update_position(direction[index_max].clone());
         };
-
-        if finished {
-            next_state.set(SimulationState::Evolving);
-        }
+    }
+    app_config.current_moves += 1;
+    if finished {
+        evolve(sim_config, next_state, app_config)
     }
 }
 
 fn evolve(
-    mut app_config: ResMut<Configuration>,
+    mut sim_config: ResMut<Configuration>,
     mut next_state: ResMut<NextState<SimulationState>>,
+    mut app_config: ResMut<AppConfig>,
 ) {
-    let sim = &mut app_config.simulation;
+    let sim = &mut sim_config.simulation;
 
-    let best_score = sim.evolve();
-    println!("Evolved ! Last best score : {}", best_score);
+    let (best_score, average_score) = sim.evolve();
+    println!(
+        "Evolved ! Last best score : {}, Last average score : {}",
+        best_score, average_score
+    );
 
     for i in 0..sim.population.len() {
-        sim.population[i].reset();
+        sim.population[i].reset(app_config.allowed_moves);
     }
 
+    app_config.generation_number += 1;
+    app_config.current_moves = 0;
+    app_config.best_score = best_score as u64;
+    app_config.average_score = average_score as u64;
     next_state.set(SimulationState::Running);
 }
 
@@ -157,11 +166,11 @@ fn setup_simulation(
         brains.push(brain);
     }
     let mut genetic_model =
-        GeneticModel::new(&grid_config, allowed_moves, population_count, 0.4, brains);
+        GeneticModel::new(&grid_config, allowed_moves, population_count, 0.05, brains);
 
     // spawn first snakes
     for i in 0..population_count as usize {
-        genetic_model.population[i].reset();
+        genetic_model.population[i].reset(allowed_moves);
     }
 
     println!("{genetic_model}");

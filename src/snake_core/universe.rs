@@ -3,7 +3,7 @@ use std::fmt::Display;
 use bevy::ecs::system::Resource;
 use rand::Rng;
 
-use super::snake::Snake;
+use super::snake::{Snake, SnakeException};
 
 #[derive(Debug, PartialEq)]
 
@@ -62,7 +62,7 @@ impl Universe {
     }
 
     /// Move the snake and check if it ate something
-    pub fn move_snake(&mut self, id: usize, dir: Direction) -> bool {
+    pub fn move_snake(&mut self, id: usize, dir: Direction) -> Result<bool, SnakeException> {
         let new_tail_pos = self.snakes[id].positions[self.snakes[id].positions.len() - 1];
         match self.snakes[id].move_head(dir, self.width, self.height) {
             Ok(_) => {
@@ -71,15 +71,16 @@ impl Universe {
                     if pos == (food.0, food.1) {
                         self.snakes[id].add_tail(new_tail_pos);
                         self.food.remove(i);
-                        return true;
+                        return Ok(true);
                     }
                 }
             }
             Err(_) => {
                 self.snakes.remove(id);
+                return Err(SnakeException::DeadSnakeException);
             }
         }
-        false
+        Ok(false)
     }
 
     pub fn kill_snake(&mut self, id: usize) {

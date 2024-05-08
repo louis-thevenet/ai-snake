@@ -92,7 +92,7 @@ fn setup_simulation(
     let grid_config = GridConfiguration {
         width,
         height,
-        cell_size: 16.0,
+        cell_size: 1.0,
     };
 
     let mut brains: Vec<NeuralNetwork> = vec![];

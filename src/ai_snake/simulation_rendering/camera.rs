@@ -45,7 +45,7 @@ pub fn camera_controls(
 ) {
     let mut projection = query_camera.single_mut();
 
-    let translation_speed = 400.0 * projection.scale;
+    let translation_speed = 100.0 * projection.scale;
     let boost = if keys.pressed(KeyCode::ShiftLeft) {
         3.0
     } else {

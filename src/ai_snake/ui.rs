@@ -25,6 +25,7 @@ pub enum SimulationState {
 pub struct AppConfig {
     pub grid_size: u64,
     pub population_size: u64,
+    pub allowed_moves: u32,
 }
 
 pub struct UIPlugin;
@@ -40,6 +41,7 @@ impl Plugin for UIPlugin {
 fn configure_app_state(mut app_state: ResMut<AppConfig>) {
     app_state.grid_size = 32;
     app_state.population_size = 1;
+    app_state.allowed_moves = 30;
 }
 
 fn build_ui(
@@ -85,6 +87,10 @@ fn stopped_ui(
     ui.label("Simulation is not running");
     ui.add(egui::Slider::new(&mut app_config.grid_size, 0..=128).text("grid size"));
     ui.add(egui::Slider::new(&mut app_config.population_size, 0..=1000).text("population size"));
+    ui.add(
+        egui::Slider::new(&mut app_config.allowed_moves, 0..=256)
+            .text("allowed moves before evolution"),
+    );
 
     if ui.button("Start").clicked() {
         next_state.set(SimulationState::StartUp)

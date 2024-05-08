@@ -10,25 +10,27 @@ pub struct Model {
     pub universe: Universe,
     pub brain: NeuralNetwork,
     pub score: u32,
+    pub moves_left: u32,
     pub id: usize,
 }
 
 impl Model {
-    pub fn new(width: u64, height: u64, id: usize, brain: NeuralNetwork) -> Self {
+    pub fn new(width: u64, height: u64, moves_left: u32, id: usize, brain: NeuralNetwork) -> Self {
         let universe = Universe::new_empty(width, height);
         let score = 0;
         Model {
             universe,
             brain,
             score,
+            moves_left,
             id,
         }
     }
 
-    pub fn compute_input(&self, width: u64, height: u64) -> Vec<f64> {
+    pub fn compute_input(&self, width: u64, height: u64) -> Option<Vec<f64>> {
         let mut input = vec![];
         let vision_range: i64 = 20;
-        if let Some(snake) = self.universe.get_snake(self.id) {
+        if let Some(snake) = self.universe.get_snake(0) {
             for u in -1..=1 {
                 for v in -1..=1 {
                     if u == 0 && v == 0 {
@@ -59,12 +61,11 @@ impl Model {
                     }
                 }
             }
+            Some(input)
         } else {
             println!("No snake in model id {}", self.id);
-            println!("{}", self.universe);
+            None
         }
-
-        input
     }
 
     pub fn compute_output(&self, input: Vec<f64>) -> Vec<f64> {
@@ -76,7 +77,12 @@ impl Model {
     }
 
     pub fn update_position(&mut self, direction: Direction) {
-        self.universe.move_snake(self.id, direction);
+        if self.moves_left == 0 {
+            self.universe.kill_snake(0);
+        } else {
+            self.universe.move_snake(0, direction);
+            self.moves_left -= 1;
+        }
     }
 }
 

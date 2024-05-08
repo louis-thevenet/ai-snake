@@ -48,21 +48,22 @@ fn one_step_simulation(mut app_config: ResMut<Configuration>) {
 
     for i in 0..sim.population.len() {
         // get input for each snake
-        let input = sim.population[i].compute_input(width, height);
-        println!("input for individual {}: {:?}", i, input);
+        if let Some(input) = sim.population[i].compute_input(width, height) {
+            println!("input for individual {}: {:?}", i, input);
 
-        // compute output for each snake
-        let output = sim.population[i].compute_output(input);
-        println!("output for individual {}: {:?}", i, output);
+            // compute output for each snake
+            let output = sim.population[i].compute_output(input);
+            println!("output for individual {}: {:?}", i, output);
 
-        // update snake position based on output
-        let index_max = output
-            .iter()
-            .enumerate()
-            .max_by(|(_, &a), (_, &b)| a.total_cmp(&b))
-            .unwrap()
-            .0;
-        sim.population[i].update_position(direction[index_max].clone());
+            // update snake position based on output
+            let index_max = output
+                .iter()
+                .enumerate()
+                .max_by(|(_, &a), (_, &b)| a.total_cmp(&b))
+                .unwrap()
+                .0;
+            sim.population[i].update_position(direction[index_max].clone());
+        };
     }
 }
 
@@ -74,6 +75,7 @@ fn start_set_up(
     let config = setup_simulation(
         app_config.grid_size,
         app_config.grid_size,
+        app_config.allowed_moves,
         app_config.population_size,
     );
     commands.insert_resource(config);
@@ -81,7 +83,12 @@ fn start_set_up(
     next_state.set(SimulationState::Paused);
 }
 
-fn setup_simulation(width: u64, height: u64, population_count: u64) -> Configuration {
+fn setup_simulation(
+    width: u64,
+    height: u64,
+    allowed_moves: u32,
+    population_count: u64,
+) -> Configuration {
     let grid_config = GridConfiguration {
         width,
         height,
@@ -125,11 +132,12 @@ fn setup_simulation(width: u64, height: u64, population_count: u64) -> Configura
             ));
         brains.push(brain);
     }
-    let mut genetic_model = GeneticModel::new(&grid_config, population_count, brains);
+    let mut genetic_model =
+        GeneticModel::new(&grid_config, allowed_moves, population_count, brains);
 
     // spawn first snakes
     for i in 0..population_count as usize {
-        let snake = Snake::new(width, height, i);
+        let snake = Snake::new(width, height, 0);
         genetic_model.population[i].add_snake(snake);
         genetic_model.population[i].universe.spawn_food();
     }

@@ -82,6 +82,10 @@ impl Universe {
         false
     }
 
+    pub fn kill_snake(&mut self, id: usize) {
+        self.snakes.remove(id);
+    }
+
     pub fn get_snake(&self, id: usize) -> Option<&Snake> {
         self.snakes.get(id)
     }

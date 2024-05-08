@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::ai_snake::simulation::GridConfiguration;
 
 use super::{model::Model, neural_network::NeuralNetwork};
@@ -49,5 +51,23 @@ impl GeneticModel {
         for i in 0..self.population.len() {
             self.population[i].brain = self.population[best_model_index].brain.clone();
         }
+        self.mutate_population();
+    }
+}
+
+impl fmt::Display for GeneticModel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "Genetic model with {} models, alpha={}",
+            self.population.len(),
+            self.mutation_factor
+        )?;
+
+        writeln!(f, "Models:")?;
+        for model in &self.population {
+            write!(f, "{}", model)?;
+        }
+        Ok(())
     }
 }

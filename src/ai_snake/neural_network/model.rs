@@ -1,6 +1,8 @@
+use std::{fmt, path::Display};
+
 use crate::snake_core::{
     snake::Snake,
-    universe::{Food, Universe},
+    universe::{Direction, Food, Universe},
 };
 
 use super::neural_network::NeuralNetwork;
@@ -71,5 +73,17 @@ impl Model {
 
     pub fn add_snake(&mut self, snake: Snake) {
         self.universe.add_snake(snake);
+    }
+
+    pub fn update_position(&mut self, direction: Direction) {
+        self.universe.move_snake(self.id, direction);
+    }
+}
+
+impl fmt::Display for Model {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "Model {}, NN:\n", self.id)?;
+        writeln!(f, "{}", self.brain)?;
+        Ok(())
     }
 }

@@ -1,9 +1,11 @@
+use std::cmp;
+
 use bevy::prelude::*;
 
 use crate::snake_core::snake::Snake;
 
 use super::neural_network::genetic::GeneticModel;
-use super::neural_network::neural_network::{ActionFunction, Layer, NeuralNetwork};
+use super::neural_network::neural_network::{ActivationFunction, Layer, NeuralNetwork};
 use super::ui::{AppConfig, SimulationState};
 
 #[derive(Resource)]
@@ -32,16 +34,35 @@ impl Plugin for SimulationPlugin {
 }
 
 fn one_step_simulation(mut app_config: ResMut<Configuration>) {
-    println!(">>> doing one step of the simulation");
-    let sim = &app_config.simulation;
+    println!(">>> Doing one step of the simulation");
+
+    let width = app_config.grid_config.width;
+    let height = app_config.grid_config.height;
+    let direction = [
+        crate::snake_core::universe::Direction::Up,
+        crate::snake_core::universe::Direction::Down,
+        crate::snake_core::universe::Direction::Left,
+        crate::snake_core::universe::Direction::Right,
+    ];
+    let sim = &mut app_config.simulation;
+
     for i in 0..sim.population.len() {
-        let input = sim.population[i]
-            .compute_input(app_config.grid_config.width, app_config.grid_config.height);
-
+        // get input for each snake
+        let input = sim.population[i].compute_input(width, height);
         println!("input for individual {}: {:?}", i, input);
-        let output = sim.population[i].compute_output(input);
 
+        // compute output for each snake
+        let output = sim.population[i].compute_output(input);
         println!("output for individual {}: {:?}", i, output);
+
+        // update snake position based on output
+        let index_max = output
+            .iter()
+            .enumerate()
+            .max_by(|(_, &a), (_, &b)| a.total_cmp(&b))
+            .unwrap()
+            .0;
+        sim.population[i].update_position(direction[index_max].clone());
     }
 }
 
@@ -69,17 +90,39 @@ fn setup_simulation(width: u64, height: u64, population_count: u64) -> Configura
 
     let mut brains: Vec<NeuralNetwork> = vec![];
     for _ in 0..population_count {
-        let input = 8;
-        let output = 8;
-        let mut weights = vec![];
-        (0..input).for_each(|k| {
-            weights.push(vec![]);
-            for _ in 0..output {
-                weights[k].push(rand::random::<f64>());
+        let inner_input_size = 16;
+        let inner_output_size = 16;
+        let mut weights1 = vec![vec![0.0; inner_input_size]; inner_output_size];
+
+        (0..weights1.len()).for_each(|i| {
+            for j in 0..weights1[i].len() {
+                weights1[i][j] = rand::random::<f64>();
             }
         });
+
+        let final_size = 4;
+        let mut weights3 = vec![vec![0.0; final_size]; inner_output_size];
+
+        (0..weights3.len()).for_each(|i| {
+            for j in 0..weights3[i].len() {
+                weights3[i][j] = rand::random::<f64>();
+            }
+        });
+
         let mut brain = NeuralNetwork::new();
-        brain.add_layer(Layer::new(2, 4, weights, ActionFunction::Relu));
+        brain
+            .add_layer(Layer::new(
+                inner_input_size,
+                inner_output_size,
+                weights1,
+                ActivationFunction::Relu,
+            ))
+            .add_layer(Layer::new(
+                inner_output_size,
+                final_size,
+                weights3,
+                ActivationFunction::Relu,
+            ));
         brains.push(brain);
     }
     let mut genetic_model = GeneticModel::new(&grid_config, population_count, brains);
@@ -90,6 +133,8 @@ fn setup_simulation(width: u64, height: u64, population_count: u64) -> Configura
         genetic_model.population[i].add_snake(snake);
         genetic_model.population[i].universe.spawn_food();
     }
+
+    println!("{genetic_model}");
 
     Configuration {
         simulation: genetic_model,

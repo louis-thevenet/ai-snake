@@ -50,7 +50,6 @@ impl Universe {
         let mut rng = rand::thread_rng();
         let x = rng.gen_range(0..self.width);
         let y = rng.gen_range(0..self.height);
-        println!("Spawning food at ({}, {})", x, y);
 
         for snake in self.snakes.iter() {
             if snake.is_in_pos((x, y)) {

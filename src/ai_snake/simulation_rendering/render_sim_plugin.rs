@@ -16,7 +16,7 @@ impl Plugin for RenderSimulationPlugin {
             .add_systems(OnExit(SimulationState::StartUp), setup_sprites)
             .add_systems(OnExit(SimulationState::StartUp), camera_update)
             .add_systems(Update, camera_controls)
-            .add_systems(Update, display_grid)
+            //.add_systems(Update, display_grid)
             .add_systems(FixedPostUpdate, update_sprites);
     }
 }

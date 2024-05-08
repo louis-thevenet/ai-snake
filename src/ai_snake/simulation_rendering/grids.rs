@@ -10,9 +10,7 @@ pub fn display_grid(config: Option<Res<Configuration>>, mut gizmos: Gizmos) {
         for index in 0..population.len() {
             let x = ((index % line_length) * config.grid_config.width as usize) as f32
                 * config.grid_config.cell_size;
-
-            let y = (((1 + line_length) - (index / line_length))
-                * config.grid_config.width as usize) as f32
+            let y = ((index / line_length) * config.grid_config.width as usize) as f32
                 * config.grid_config.cell_size;
 
             for i in 1..config.grid_config.width {

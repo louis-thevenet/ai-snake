@@ -39,7 +39,7 @@ impl Model {
     }
     pub fn compute_input(&self, width: u64, height: u64) -> Option<Vec<f64>> {
         let mut input = vec![];
-        let vision_range: i64 = 40;
+        let vision_range: i64 = 16;
         if let Some(snake) = self.universe.get_snake(0) {
             let mut counter = 0;
             for u in -1..=1 {
@@ -56,18 +56,19 @@ impl Model {
                             (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
                         );
                         if snake.is_in_pos(pos) {
-                            input[counter] = i as f64;
-                            break;
+                            input[counter] = 1. - i as f64 / vision_range as f64;
+                            continue;
                         }
                     }
-                    for i in 1..=vision_range {
+                    for i in 1..vision_range {
                         let pos = (
                             (snake.positions[0].0 + (i * u + width as i64) as u64) % width,
                             (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
                         );
                         if self.universe.food.contains(&Food(pos.0, pos.1)) {
-                            input[counter + 1] = i as f64;
-                            break;
+                            //input[counter + 1] = 1. - i as f64 / vision_range as f64;
+                            input[counter + 1] = 1. - i as f64 / vision_range as f64;
+                            continue;
                         }
                     }
                     counter += 2;

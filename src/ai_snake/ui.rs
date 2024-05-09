@@ -88,7 +88,7 @@ fn stopped_ui(
 ) {
     ui.label("Simulation is not running");
     ui.add(egui::Slider::new(&mut app_config.grid_size, 0..=128).text("grid size"));
-    ui.add(egui::Slider::new(&mut app_config.population_size, 0..=5000).text("population size"));
+    ui.add(egui::Slider::new(&mut app_config.population_size, 0..=10000).text("population size"));
     ui.add(
         egui::Slider::new(&mut app_config.allowed_moves, 0..=4096)
             .text("allowed moves before evolution"),

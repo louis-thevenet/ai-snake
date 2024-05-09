@@ -10,16 +10,17 @@ pub struct NeuralNetwork {
 #[derive(Clone)]
 
 pub struct Layer {
-    input_dim: usize,
-    output_dim: usize,
+    pub input_dim: usize,
+    pub output_dim: usize,
     pub weights: Vec<Vec<f64>>,
-    //biases: Vec<f64>,
+    biases: Vec<f64>,
     activation: ActivationFunction,
 }
 #[derive(Clone)]
 pub enum ActivationFunction {
     Relu,
     Sigmoid,
+    Softmax,
 }
 
 impl NeuralNetwork {
@@ -56,6 +57,10 @@ impl NeuralNetwork {
                     if rand < mutation_factor {
                         layer.weights[j][i] = rand::random::<f64>();
                     }
+                    let rand = rand::random::<f64>();
+                    if rand < mutation_factor {
+                        layer.biases[i] = rand::random::<f64>();
+                    }
                 }
             }
         }
@@ -67,14 +72,14 @@ impl Layer {
         input_dim: usize,
         output_dim: usize,
         weights: Vec<Vec<f64>>,
-        //biases: Vec<f64>,
+        biases: Vec<f64>,
         activation: ActivationFunction,
     ) -> Self {
         Layer {
             input_dim,
             output_dim,
             weights,
-            //biases,
+            biases,
             activation,
         }
     }
@@ -86,7 +91,7 @@ impl Layer {
 
         (0..self.output_dim).for_each(|j| {
             (0..self.input_dim).for_each(|k| {
-                output[j] += input[k] * self.weights[k][j];
+                output[j] += input[k] * self.weights[k][j]; // + self.biases[j] * 0.15;
             });
         });
 
@@ -102,6 +107,16 @@ impl Layer {
                 (0..self.output_dim).for_each(|i| {
                     output[i] = 1.0 / (1.0 + (-output[i]).exp());
                 });
+            }
+            ActivationFunction::Softmax => {
+                let mut sum = 0.0;
+                (0..self.output_dim).for_each(|i| {
+                    output[i] = (-output[i]).exp();
+                    sum += output[i];
+                });
+                (0..self.output_dim).for_each(|i| {
+                    output[i] /= sum;
+                })
             }
         }
         output
@@ -130,6 +145,7 @@ impl fmt::Display for ActivationFunction {
         match *self {
             ActivationFunction::Relu => write!(f, "relu"),
             ActivationFunction::Sigmoid => write!(f, "sigmoid"),
+            ActivationFunction::Softmax => write!(f, "softmax"),
         }
     }
 }

@@ -100,9 +100,8 @@ impl fmt::Display for GeneticModel {
         )?;
 
         writeln!(f, "Models:")?;
-        for model in &self.population {
-            write!(f, "{}", model)?;
-        }
+        let m = self.population.first().ok_or(std::fmt::Error)?;
+        write!(f, "{}", m)?;
         Ok(())
     }
 }

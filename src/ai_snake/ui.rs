@@ -15,6 +15,14 @@ pub enum SimulationState {
     Running,
     Paused,
 }
+
+#[derive(Default, States, Debug, Hash, Eq, Clone, Copy, PartialEq)]
+
+pub enum RenderingState {
+    #[default]
+    Enabled,
+    Disabled,
+}
 #[derive(Default, Resource)]
 pub struct AppConfig {
     pub generation_number: u64,
@@ -31,6 +39,7 @@ impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<AppConfig>()
             .init_state::<SimulationState>()
+            .init_state::<RenderingState>()
             .add_plugins(EguiPlugin)
             .add_systems(Startup, configure_app_state)
             .add_systems(Update, (build_ui, ui_controls));
@@ -40,10 +49,10 @@ fn configure_app_state(mut app_state: ResMut<AppConfig>) {
     app_state.generation_number = 0;
     app_state.best_score = 0;
     app_state.average_score = 0;
-    app_state.grid_size = 32;
-    app_state.population_size = 2000;
+    app_state.grid_size = 20;
+    app_state.population_size = 3000;
     app_state.current_moves = 0;
-    app_state.allowed_moves = 300;
+    app_state.allowed_moves = 500;
 }
 
 fn build_ui(
@@ -51,6 +60,8 @@ fn build_ui(
     app_config: ResMut<AppConfig>,
     sim_state: ResMut<State<SimulationState>>,
     mut next_state: ResMut<NextState<SimulationState>>,
+    rendering_state: ResMut<State<RenderingState>>,
+    mut next_rendering_state: ResMut<NextState<RenderingState>>,
 ) {
     egui::SidePanel::left("Menu")
         .resizable(true)
@@ -60,6 +71,16 @@ fn build_ui(
             ui.label("Zoom : Q, E");
 
             ui.heading("Configuration");
+            if ui.button("Enable/Disable Sprites Update").clicked() {
+                match rendering_state.get() {
+                    RenderingState::Disabled => {
+                        next_rendering_state.set(RenderingState::Enabled);
+                    }
+                    RenderingState::Enabled => {
+                        next_rendering_state.set(RenderingState::Disabled);
+                    }
+                }
+            };
             match sim_state.get() {
                 SimulationState::StartUp => {}
                 SimulationState::Evolving => {}

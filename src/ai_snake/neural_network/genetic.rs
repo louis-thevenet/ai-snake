@@ -45,7 +45,7 @@ impl GeneticModel {
             .for_each(|m| m.brain = best_model.brain.clone());
     }
 
-    pub fn evolve(&mut self) -> (u32, u32) {
+    pub fn evolve(&mut self) -> (u32, u32, u32) {
         let keep_percent = 0.02;
         let mut best_score = 0;
         let mut average_score = 0;
@@ -63,17 +63,17 @@ impl GeneticModel {
                 models_to_merge.push(i);
             }
         }
-        println!("Merging {} NN", models_to_merge.len());
-        let brain_merged = self.merge_brains(models_to_merge);
+        let brain_merged = self.merge_brains(&models_to_merge);
 
         for i in 0..self.population.len() {
             self.population[i].brain = brain_merged.clone();
         }
-
+        let models_merged = models_to_merge.len();
         self.mutate_population();
-        (best_score, average_score)
+        (best_score, average_score, models_merged as u32)
     }
-    fn merge_brains(&self, to_keep: Vec<usize>) -> NeuralNetwork {
+
+    fn merge_brains(&self, to_keep: &[usize]) -> NeuralNetwork {
         let mut brain = self.population[0].brain.clone();
         for l in 0..brain.layers.len() {
             for i in 0..brain.layers[l].output_dim {

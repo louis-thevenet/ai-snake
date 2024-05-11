@@ -108,10 +108,10 @@ fn evolve(
 ) {
     let sim = &mut sim_config.simulation;
 
-    let (best_score, average_score) = sim.evolve();
+    let (best_score, average_score, models_merged) = sim.evolve();
     println!(
-        "Evolved ! Last best score : {}, Last average score : {}",
-        best_score, average_score
+        "[{}] Best: {}, Average: {}, Merged: {}",
+        app_config.generation_number, best_score, average_score, models_merged
     );
 
     for i in 0..sim.population.len() {

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::ai_snake::ui::SimulationState;
+use crate::ai_snake::ui::{RenderingState, SimulationState};
 
 use super::{
     camera::{camera_controls, camera_update, spawn_camera},
@@ -17,6 +17,9 @@ impl Plugin for RenderSimulationPlugin {
             .add_systems(OnExit(SimulationState::StartUp), camera_update)
             .add_systems(Update, camera_controls)
             //.add_systems(Update, display_grid)
-            .add_systems(FixedPostUpdate, update_sprites);
+            .add_systems(
+                FixedPostUpdate,
+                update_sprites.run_if(in_state(RenderingState::Enabled)),
+            );
     }
 }

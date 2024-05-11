@@ -5,16 +5,14 @@ use crate::ai_snake::simulation::GridConfiguration;
 use super::{model::Model, neural_network::NeuralNetwork};
 
 pub struct GeneticModel {
-    pub mutation_factor: f64,
     pub population: Vec<Model>,
 }
 
 impl GeneticModel {
     pub fn new(
         grid_config: &GridConfiguration,
-        allowed_moves_before_evolution: u32,
+        allowed_moves_before_evolution: u64,
         population_count: u64,
-        mutation_factor: f64,
         brain: Vec<NeuralNetwork>,
     ) -> Self {
         let mut population: Vec<Model> = Vec::new();
@@ -27,15 +25,12 @@ impl GeneticModel {
                 brain[i as usize].clone(),
             ));
         });
-        GeneticModel {
-            mutation_factor,
-            population,
-        }
+        GeneticModel { population }
     }
 
-    fn mutate_population(&mut self) {
+    fn mutate_population(&mut self, mutation_factor: f64) {
         for model in &mut self.population {
-            model.brain.mutate(self.mutation_factor);
+            model.brain.mutate(mutation_factor);
         }
     }
 
@@ -45,8 +40,7 @@ impl GeneticModel {
             .for_each(|m| m.brain = best_model.brain.clone());
     }
 
-    pub fn evolve(&mut self) -> (u32, u32, u32) {
-        let keep_percent = 0.02;
+    pub fn evolve(&mut self, keep_x_best: f64, mutation_factor: f64) -> (u32, u32, u32) {
         let mut best_score = 0;
         let mut average_score = 0;
         for i in 0..self.population.len() {
@@ -59,7 +53,7 @@ impl GeneticModel {
 
         let mut models_to_merge = vec![];
         for i in 0..(self.population.len()) {
-            if self.population[i].score >= ((1. - keep_percent) * best_score as f32) as u32 {
+            if self.population[i].score >= ((1. - keep_x_best) * best_score as f64) as u32 {
                 models_to_merge.push(i);
             }
         }
@@ -69,7 +63,7 @@ impl GeneticModel {
             self.population[i].brain = brain_merged.clone();
         }
         let models_merged = models_to_merge.len();
-        self.mutate_population();
+        self.mutate_population(mutation_factor);
         (best_score, average_score, models_merged as u32)
     }
 
@@ -92,12 +86,7 @@ impl GeneticModel {
 
 impl fmt::Display for GeneticModel {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(
-            f,
-            "Genetic model with {} models, alpha={}",
-            self.population.len(),
-            self.mutation_factor
-        )?;
+        writeln!(f, "Genetic model with {} models", self.population.len(),)?;
 
         writeln!(f, "Models:")?;
         let m = self.population.first().ok_or(std::fmt::Error)?;

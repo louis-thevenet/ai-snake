@@ -106,9 +106,13 @@ fn evolve(
     mut next_state: ResMut<NextState<SimulationState>>,
     mut app_config: ResMut<AppConfig>,
 ) {
+    let pop_size = sim_config.simulation.population.len() as f64;
     let sim = &mut sim_config.simulation;
 
-    let (best_score, average_score, models_merged) = sim.evolve();
+    let (best_score, average_score, models_merged) = sim.evolve(
+        app_config.keep_x_best,
+        app_config.mutation_factor / pop_size,
+    );
     println!(
         "[{}] Best: {}, Average: {}, Merged: {}",
         app_config.generation_number, best_score, average_score, models_merged
@@ -122,6 +126,7 @@ fn evolve(
     app_config.current_moves = 0;
     app_config.best_score = best_score as u64;
     app_config.average_score = average_score as u64;
+    app_config.last_merged = models_merged as u64;
     next_state.set(SimulationState::Running);
 }
 
@@ -138,13 +143,13 @@ fn start_set_up(
     );
     commands.insert_resource(config);
 
-    next_state.set(SimulationState::Paused);
+    next_state.set(SimulationState::Running);
 }
 
 fn setup_simulation(
     width: u64,
     height: u64,
-    allowed_moves: u32,
+    allowed_moves: u64,
     population_count: u64,
 ) -> Configuration {
     let grid_config = GridConfiguration {
@@ -224,14 +229,8 @@ fn setup_simulation(
             ));
         brains.push(brain);
     }
-    let mutation_factor = 0.001;
-    let mut genetic_model = GeneticModel::new(
-        &grid_config,
-        allowed_moves,
-        population_count,
-        mutation_factor,
-        brains,
-    );
+    let mut genetic_model =
+        GeneticModel::new(&grid_config, allowed_moves, population_count, brains);
 
     // spawn first snakes
     for i in 0..population_count as usize {

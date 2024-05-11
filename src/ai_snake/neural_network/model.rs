@@ -10,14 +10,14 @@ pub struct Model {
     pub universe: Universe,
     pub brain: NeuralNetwork,
     pub score: u32,
-    pub allowed_moves_number: u32,
-    pub moves_left: u32,
+    pub allowed_moves_number: u64,
+    pub moves_left: u64,
 
     pub id: usize,
 }
 
 impl Model {
-    pub fn new(width: u64, height: u64, moves_left: u32, id: usize, brain: NeuralNetwork) -> Self {
+    pub fn new(width: u64, height: u64, moves_left: u64, id: usize, brain: NeuralNetwork) -> Self {
         let universe = Universe::new_empty(width, height);
         let score = 0;
         Model {
@@ -29,7 +29,7 @@ impl Model {
             id,
         }
     }
-    pub fn reset(&mut self, moves_left: u32) {
+    pub fn reset(&mut self, moves_left: u64) {
         self.add_snake(Snake::new(self.universe.width, self.universe.height, 0));
         self.score = 0;
         self.allowed_moves_number = moves_left;

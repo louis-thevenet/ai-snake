@@ -161,13 +161,13 @@ fn setup_simulation(
 
         (0..weights1.len()).for_each(|i| {
             for j in 0..weights1[i].len() {
-                weights1[i][j] = rand::random::<f64>();
+                weights1[i][j] = rand::random::<f64>() * 2. - 1.;
             }
         });
 
         let mut biases1 = vec![0.; inner_output_size];
         for b in biases1.iter_mut() {
-            *b = rand::random::<f64>();
+            *b = rand::random::<f64>() * 2. - 1.;
         }
 
         let inner_input_size = 16;
@@ -176,13 +176,13 @@ fn setup_simulation(
 
         (0..weights2.len()).for_each(|i| {
             for j in 0..weights2[i].len() {
-                weights2[i][j] = rand::random::<f64>();
+                weights2[i][j] = rand::random::<f64>() * 2. - 1.;
             }
         });
 
         let mut biases2 = vec![0.; inner_output_size];
         for b in biases2.iter_mut() {
-            *b = rand::random::<f64>();
+            *b = rand::random::<f64>() * 2. - 1.;
         }
 
         let final_size = 4;
@@ -190,13 +190,13 @@ fn setup_simulation(
 
         (0..weights3.len()).for_each(|i| {
             for j in 0..weights3[i].len() {
-                weights3[i][j] = rand::random::<f64>();
+                weights3[i][j] = rand::random::<f64>() * 2. - 1.;
             }
         });
 
         let mut biases3 = vec![0.; final_size];
         for b in biases3.iter_mut() {
-            *b = rand::random::<f64>();
+            *b = rand::random::<f64>() * 2. - 1.;
         }
 
         let mut brain = NeuralNetwork::new();
@@ -206,14 +206,14 @@ fn setup_simulation(
                 inner_output_size,
                 weights1,
                 biases1,
-                ActivationFunction::Relu,
+                ActivationFunction::Identity,
             ))
             .add_layer(Layer::new(
                 inner_input_size,
                 inner_output_size,
                 weights2,
                 biases2,
-                ActivationFunction::Relu,
+                ActivationFunction::Identity,
             ))
             .add_layer(Layer::new(
                 inner_output_size,
@@ -224,7 +224,7 @@ fn setup_simulation(
             ));
         brains.push(brain);
     }
-    let mutation_factor = 0.005;
+    let mutation_factor = 0.001;
     let mut genetic_model = GeneticModel::new(
         &grid_config,
         allowed_moves,

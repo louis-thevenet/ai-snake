@@ -21,6 +21,7 @@ pub enum ActivationFunction {
     Relu,
     Sigmoid,
     Softmax,
+    Identity,
 }
 
 impl NeuralNetwork {
@@ -41,7 +42,10 @@ impl NeuralNetwork {
     }
 
     fn normalize(&self, v: Vec<f64>) -> Vec<f64> {
-        let sum = v.iter().sum::<f64>();
+        let mut sum = 0.;
+        for x in v.iter() {
+            sum += x.abs();
+        }
         if sum > 0.0 {
             v.into_iter().map(|x| x / sum).collect()
         } else {
@@ -55,11 +59,11 @@ impl NeuralNetwork {
                 for j in 0..layer.input_dim {
                     let rand = rand::random::<f64>();
                     if rand < mutation_factor {
-                        layer.weights[j][i] = rand::random::<f64>();
+                        layer.weights[j][i] = rand::random::<f64>() * 2. - 1.;
                     }
                     let rand = rand::random::<f64>();
                     if rand < mutation_factor {
-                        layer.biases[i] = rand::random::<f64>();
+                        layer.biases[i] = rand::random::<f64>() * 2. - 1.;
                     }
                 }
             }
@@ -91,7 +95,7 @@ impl Layer {
 
         (0..self.output_dim).for_each(|j| {
             (0..self.input_dim).for_each(|k| {
-                output[j] += input[k] * self.weights[k][j]; // + self.biases[j] * 0.15;
+                output[j] += input[k] * self.weights[k][j]; // + self.biases[j];
             });
         });
 
@@ -118,6 +122,7 @@ impl Layer {
                     output[i] /= sum;
                 })
             }
+            ActivationFunction::Identity => (),
         }
         output
     }
@@ -146,6 +151,7 @@ impl fmt::Display for ActivationFunction {
             ActivationFunction::Relu => write!(f, "relu"),
             ActivationFunction::Sigmoid => write!(f, "sigmoid"),
             ActivationFunction::Softmax => write!(f, "softmax"),
+            ActivationFunction::Identity => Ok(()),
         }
     }
 }

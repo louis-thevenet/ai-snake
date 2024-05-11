@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::ai_snake::simulation::GridConfiguration;
 
-use super::{model::Model, neural_network::NeuralNetwork};
+use super::{model::Model, NeuralNetwork};
 
 pub struct GeneticModel {
     pub population: Vec<Model>,
@@ -32,12 +32,6 @@ impl GeneticModel {
         for model in &mut self.population {
             model.brain.mutate(mutation_factor);
         }
-    }
-
-    fn copy_best(&mut self, best_model: &Model) {
-        self.population
-            .iter_mut()
-            .for_each(|m| m.brain = best_model.brain.clone());
     }
 
     pub fn evolve(&mut self, keep_x_best: f64, mutation_factor: f64) -> (u32, u32, u32) {

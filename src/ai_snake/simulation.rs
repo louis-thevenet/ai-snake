@@ -1,11 +1,8 @@
-use std::cmp;
-
 use bevy::prelude::*;
 
-use crate::snake_core::snake::Snake;
+use crate::ai_snake::neural_network::{ActivationFunction, Layer, NeuralNetwork};
 
 use super::neural_network::genetic::GeneticModel;
-use super::neural_network::neural_network::{ActivationFunction, Layer, NeuralNetwork};
 use super::ui::{AppConfig, SimulationState};
 
 #[derive(Resource)]
@@ -36,7 +33,7 @@ impl Plugin for SimulationPlugin {
 
 fn one_step_simulation(
     mut sim_config: ResMut<Configuration>,
-    mut next_state: ResMut<NextState<SimulationState>>,
+    next_state: ResMut<NextState<SimulationState>>,
     mut app_config: ResMut<AppConfig>,
 ) {
     let width = sim_config.grid_config.width;
@@ -51,7 +48,7 @@ fn one_step_simulation(
 
     let mut finished = true;
     for i in 0..sim.population.len() {
-        if (sim.population[i].moves_left > 0) {
+        if sim.population[i].moves_left > 0 {
             finished = false;
         }
 

@@ -1,11 +1,12 @@
-use std::{fmt, path::Display};
+use std::fmt;
 
 use crate::snake_core::{
     snake::Snake,
     universe::{Direction, Food, Universe},
 };
 
-use super::neural_network::NeuralNetwork;
+use super::NeuralNetwork;
+
 pub struct Model {
     pub universe: Universe,
     pub brain: NeuralNetwork,

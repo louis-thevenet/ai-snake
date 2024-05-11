@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_egui::{
     egui::{self, Ui},
     EguiContexts, EguiPlugin,
@@ -162,7 +161,7 @@ fn stopped_ui(
 fn running_ui(
     ui: &mut Ui,
     next_state: &mut NextState<SimulationState>,
-    mut app_config: ResMut<AppConfig>,
+    app_config: ResMut<AppConfig>,
 ) {
     ui.heading("Running");
     if ui.button("Pause").clicked() {
@@ -178,16 +177,7 @@ fn running_ui(
         app_config.current_moves as f32 / app_config.allowed_moves as f32,
     ));
 }
-fn paused_ui(
-    ui: &mut Ui,
-    next_state: &mut NextState<SimulationState>,
-    mut app_config: ResMut<AppConfig>,
-) {
-    ui.heading("Paused");
-    if ui.button("Resume").clicked() {
-        next_state.set(SimulationState::Running)
-    }
-}
+
 fn ui_controls(
     keys: Res<ButtonInput<KeyCode>>,
     sim_state: Res<State<SimulationState>>,

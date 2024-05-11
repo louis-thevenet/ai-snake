@@ -1,9 +1,4 @@
-use std::cell;
-
-use crate::{
-    ai_snake::simulation::Configuration,
-    snake_core::universe::{self, Food},
-};
+use crate::ai_snake::simulation::Configuration;
 use bevy::{
     prelude::*,
     render::{render_asset::RenderAssetUsages, render_resource::Extent3d},
@@ -33,7 +28,7 @@ pub fn setup_sprites(
         let cell_size = config.grid_config.cell_size as u32;
 
         let pixels = vec![0; (width * height * 4) as usize];
-        let mut img = Image::new(
+        let img = Image::new(
             Extent3d {
                 width,
                 height,

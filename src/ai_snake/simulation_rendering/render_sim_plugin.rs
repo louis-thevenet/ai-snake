@@ -4,7 +4,6 @@ use crate::ai_snake::ui::{RenderingState, SimulationState};
 
 use super::{
     camera::{camera_controls, camera_update, spawn_camera},
-    grids::display_grid,
     sprites::{setup_sprites, update_sprites},
 };
 

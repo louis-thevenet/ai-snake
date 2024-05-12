@@ -9,8 +9,8 @@ pub struct MainSpriteId(AssetId<Image>);
 
 fn get_image_dimensions(config: &Res<Configuration>) -> (u32, u32) {
     let row_length = (1.0 + config.simulation.population.len() as f64).sqrt() as u32;
-    let column_length =
-        row_length + config.simulation.population.len() as u32 - row_length * row_length;
+    let column_length = row_length
+        + (config.simulation.population.len() as u32 - row_length * row_length) % row_length;
 
     let cell_size = config.grid_config.cell_size as u32;
 
@@ -25,9 +25,10 @@ pub fn setup_sprites(
 ) {
     if let Some(config) = config {
         let (width, height) = get_image_dimensions(&config);
-        let cell_size = config.grid_config.cell_size as u32;
+        let cell_size = config.grid_config.cell_size;
 
         let pixels = vec![0; (width * height * 4) as usize];
+        println!("width: {}, height: {}", width, height);
         let img = Image::new(
             Extent3d {
                 width,
@@ -43,16 +44,23 @@ pub fn setup_sprites(
         let image_handle = images.add(img);
         commands.insert_resource(MainSpriteId(image_handle.id()));
 
-        let bot_left_x = 0. - (cell_size * (config.grid_config.width + 1) as u32) as f32 / 2.;
-        let bot_left_y = 0. - (cell_size * (config.grid_config.height + 1) as u32) as f32 / 2.;
-
+        let bot_left_x = 0.
+            - (cell_size
+                * (config.grid_config.width as f32 + 1.)
+                * f32::sqrt(config.simulation.population.len() as f32))
+                / 2.;
+        let bot_left_y = 0.
+            - 2. * (cell_size
+                * (config.grid_config.height as f32)
+                * f32::sqrt(config.simulation.population.len() as f32));
+        println!("bot left x: {}, bot left y: {}", bot_left_x, bot_left_y);
         commands.spawn((SpriteBundle {
             texture: image_handle,
             sprite: Sprite {
-                anchor: bevy::sprite::Anchor::BottomLeft,
+                anchor: bevy::sprite::Anchor::Center,
                 ..Default::default()
             },
-            transform: Transform::from_xyz(bot_left_x, bot_left_y, 0.),
+            transform: Transform::from_xyz(0., 0., 0.),
             ..Default::default()
         },));
     }

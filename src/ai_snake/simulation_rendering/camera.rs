@@ -23,22 +23,14 @@ pub fn camera_update(
     mut query_projection_camera: Query<&mut OrthographicProjection, With<MainCamera>>,
     mut query_transform_camera: Query<&mut Transform, With<MainCamera>>,
 ) {
-    println!("yes");
     if let Some(config) = config {
         query_projection_camera.single_mut().scaling_mode = ScalingMode::FixedVertical(
             (config.grid_config.height + 1) as f32
                 * config.grid_config.cell_size
                 * f32::sqrt(config.simulation.population.len() as f32),
         );
-        let center_x = config.grid_config.cell_size
-            * config.grid_config.width as f32
-            * (config.simulation.population.len() as f32).sqrt()
-            / 2.0;
-        let center_y = 2.
-            * config.grid_config.cell_size
-            * config.grid_config.height as f32
-            * (config.simulation.population.len() as f32).sqrt();
-        query_transform_camera.single_mut().translation = Vec3::new(center_x, center_y, 1.0);
+
+        query_transform_camera.single_mut().translation = Vec3::new(0., 0., 1.0);
     }
 }
 

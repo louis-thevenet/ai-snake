@@ -40,7 +40,7 @@ impl Model {
     }
     pub fn compute_input(&self, width: u64, height: u64) -> Option<Vec<f64>> {
         let mut input = vec![];
-        let vision_range: i64 = 16;
+        let vision_range: i64 = 20;
         if let Some(snake) = self.universe.get_snake(0) {
             let mut counter = 0;
             for u in -1..=1 {

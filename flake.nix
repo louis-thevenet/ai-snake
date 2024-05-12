@@ -1,69 +1,54 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    systems.url = "github:nix-systems/default";
 
-    # Dev tools
-    treefmt-nix.url = "github:numtide/treefmt-nix";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = import inputs.systems;
-      imports = [
-        inputs.treefmt-nix.flakeModule
-      ];
-      perSystem =
-        { config
-        , self'
-        , pkgs
-        , lib
-        , system
-        , ...
-        }:
+  outputs = { self,nixpkgs,fenix}:
+
         let
-          cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-          rust-toolchain = pkgs.symlinkJoin {
-            name = "rust-toolchain";
-            paths = [ pkgs.rustc pkgs.cargo pkgs.cargo-watch pkgs.rust-analyzer pkgs.rustPlatform.rustcSrc ];
-          };
+        system = "x86_64-linux";
+        pkgs = import nixpkgs { system = system; };
+        fenixPkgs = fenix.packages.${system};
+   toolchain = fenixPkgs.combine [
+          # Default Rust tools
+          fenixPkgs.stable.cargo
+          fenixPkgs.stable.clippy
+          fenixPkgs.stable.rust-src
+          fenixPkgs.stable.rustc
+          fenixPkgs.stable.rustfmt
+          # Needed by engine WASM build
+          fenixPkgs.targets.wasm32-unknown-unknown.stable.rust-std
+        ];
 
-          buildInputs = with pkgs; [  udev
+nativeBuldInputs = [pkgs.pkg-config];
+
+          buildInputs = with pkgs; [
            udev alsa-lib vulkan-loader
-    libxkbcommon wayland
+            libxkbcommon wayland
           ];
-          nativeBuildInputs = with pkgs; [ pkg-config];
+
+          wasmBuildInputs = [
+          pkgs.wasm-pack
+          pkgs.wasm-bindgen-cli
+        ];
+
         in
-        {
-          # Rust package
-          packages.default = pkgs.rustPlatform.buildRustPackage {
-            inherit (cargoToml.package) name version;
-            src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
-
-            RUST_BACKTRACE = "full";
-
-            nativeBuildInputs = nativeBuildInputs;
-            buildInputs = buildInputs;
-          };
-
+{
           # Rust dev environment
-          devShells.default = pkgs.mkShell {
-        #     shellHook = ''export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath [
-        #     pkgs.vulkan-loader
-        #   ]}"'';
+          devShells."x86_64-linux".default = pkgs.mkShell {
 
-  LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
 
-            inputsFrom = [
-              config.treefmt.build.devShell
-            ];
             RUST_BACKTRACE = "full";
             RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
 
-            nativeBuildInputs = nativeBuildInputs;
-            packages = buildInputs ++ [ rust-toolchain pkgs.clippy ];
+            packages = buildInputs ++ [toolchain]  ++ wasmBuildInputs ++ nativeBuldInputs;
+            shellHook=''export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=wasm-server-runner'';
           };
 
           # Add your auto-formatters here.
@@ -76,5 +61,4 @@
             };
           };
         };
-    };
-}
+    }

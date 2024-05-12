@@ -101,7 +101,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ai-snake"
+name = "ai_snake"
 version = "0.1.0"
 dependencies = [
  "bevy",

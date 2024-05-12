@@ -52,32 +52,38 @@ pub fn camera_controls(
         1.0
     };
 
-    if keys.pressed(KeyCode::KeyW) {
+    if keys.pressed(KeyCode::KeyW) || keys.pressed(KeyCode::ArrowUp) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(0.0, 1.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
-    if keys.pressed(KeyCode::KeyA) {
+    if keys.pressed(KeyCode::KeyA) || keys.pressed(KeyCode::ArrowLeft) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(-1.0, 0.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
-    if keys.pressed(KeyCode::KeyS) {
+    if keys.pressed(KeyCode::KeyS) || keys.pressed(KeyCode::ArrowDown) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(0.0, -1.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
-    if keys.pressed(KeyCode::KeyD) {
+    if keys.pressed(KeyCode::KeyD) || keys.pressed(KeyCode::ArrowRight) {
         let mut transform = query_transform_camera.single_mut();
         transform.translation +=
             Vec3::new(1.0, 0.0, 0.0) * translation_speed * timer.delta_seconds() * boost;
     }
 
-    if keys.pressed(KeyCode::KeyE) {
+    if keys.pressed(KeyCode::KeyE)
+        || keys.pressed(KeyCode::NumpadAdd)
+        || keys.pressed(KeyCode::PageUp)
+    {
         projection.scale /= 1.1;
     }
 
-    if keys.pressed(KeyCode::KeyQ) {
+    if keys.pressed(KeyCode::KeyQ)
+        || keys.pressed(KeyCode::NumpadSubtract)
+        || keys.pressed(KeyCode::PageDown)
+    {
         projection.scale *= 1.1;
     }
 }

@@ -84,8 +84,8 @@ fn build_ui(
             }
 
             ui.collapsing("Controls", |ui| {
-                ui.label("Camera controls: WASD/ZQSD");
-                ui.label("Zoom: Q, E");
+                ui.label("Camera controls: WASD/ZQSD/Arrows");
+                ui.label("Zoom: Q,E/PageUp,PageDown");
                 ui.label("Play/Pause: Space");
             });
 

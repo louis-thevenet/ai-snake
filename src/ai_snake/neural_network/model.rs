@@ -54,22 +54,36 @@ impl Model {
 
                     for i in 1..=vision_range {
                         let pos = (
-                            (snake.positions[0].0 + (i * u + width as i64) as u64) % width,
-                            (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
+                            (snake.positions[0].0 as i64 + (i * u as i64)),
+                            (snake.positions[0].1 as i64 + (i * v as i64)),
                         );
-                        if snake.is_in_pos(pos) {
+                        if pos.0 > width as i64
+                            || pos.0 < 0
+                            || pos.1 > height as i64
+                            || pos.1 < 0
+                            || snake.is_in_pos((pos.0 as u64, pos.1 as u64))
+                        {
                             input[counter] = 1. - i as f64 / vision_range as f64;
-                            continue;
+                            break;
                         }
                     }
+
                     for i in 1..vision_range {
                         let pos = (
-                            (snake.positions[0].0 + (i * u + width as i64) as u64) % width,
-                            (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
+                            (snake.positions[0].0 as i64 + (i * u as i64)),
+                            (snake.positions[0].1 as i64 + (i * v as i64)),
                         );
-                        if self.universe.food.contains(&Food(pos.0, pos.1)) {
+                        if pos.0 < width as i64
+                            && pos.0 >= 0
+                            && pos.1 < height as i64
+                            && pos.1 >= 0
+                            && self
+                                .universe
+                                .food
+                                .contains(&Food(pos.0 as u64, pos.1 as u64))
+                        {
                             input[counter + 1] = 1. - i as f64 / vision_range as f64;
-                            continue;
+                            break;
                         }
                     }
                     counter += 2;

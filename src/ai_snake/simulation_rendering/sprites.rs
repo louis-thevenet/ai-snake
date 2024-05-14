@@ -25,7 +25,6 @@ pub fn setup_sprites(
 ) {
     if let Some(config) = config {
         let (width, height) = get_image_dimensions(&config);
-        let cell_size = config.grid_config.cell_size;
 
         let pixels = vec![0; (width * height * 4) as usize];
         println!("width: {}, height: {}", width, height);

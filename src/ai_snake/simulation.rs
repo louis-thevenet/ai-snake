@@ -38,12 +38,7 @@ fn one_step_simulation(
 ) {
     let width = sim_config.grid_config.width;
     let height = sim_config.grid_config.height;
-    let direction = [
-        crate::snake_core::universe::Direction::Up,
-        crate::snake_core::universe::Direction::Down,
-        crate::snake_core::universe::Direction::Left,
-        crate::snake_core::universe::Direction::Right,
-    ];
+
     let sim = &mut sim_config.simulation;
 
     let mut finished = true;
@@ -85,14 +80,7 @@ fn one_step_simulation(
                 }
             }
 
-            // update snake position based on output
-            let index_max = output
-                .iter()
-                .enumerate()
-                .max_by(|(_, &a), (_, &b)| a.total_cmp(&b))
-                .unwrap()
-                .0;
-            sim.population[i].update_position(direction[index_max].clone());
+            sim.population[i].update_position(output);
         };
     }
     app_config.current_moves += 1;

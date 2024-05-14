@@ -1,8 +1,8 @@
 use std::fmt;
 
 use crate::snake_core::{
-    snake::Snake,
-    universe::{Direction, Food, Universe},
+    snake::{Snake, SnakeException},
+    universe::{Food, Universe},
 };
 
 use super::NeuralNetwork;
@@ -104,7 +104,23 @@ impl Model {
         self.universe.add_snake(snake);
     }
 
-    pub fn update_position(&mut self, direction: Direction) {
+    pub fn update_position(&mut self, mut output: Vec<f64>) {
+        let direction = [
+            crate::snake_core::universe::Direction::Up,
+            crate::snake_core::universe::Direction::Down,
+            crate::snake_core::universe::Direction::Left,
+            crate::snake_core::universe::Direction::Right,
+        ];
+
+        let index_max = output
+            .iter()
+            .enumerate()
+            .max_by(|(_, &a), (_, &b)| a.total_cmp(&b))
+            .unwrap()
+            .0;
+
+        let direction = direction[index_max].clone();
+
         if self.moves_left == 0 {
             self.universe.kill_snake(0);
         } else {
@@ -114,7 +130,11 @@ impl Model {
                     self.universe.spawn_food();
                 }
                 Ok(false) => self.moves_left -= 1,
-                Err(_) => {
+                Err(SnakeException::InvalidMove) => {
+                    output[index_max] = 0.0;
+                    self.update_position(output);
+                }
+                Err(SnakeException::DeadSnake) => {
                     self.moves_left = 0;
                 }
             }

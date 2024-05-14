@@ -64,6 +64,14 @@ impl Universe {
     /// Move the snake and check if it ate something
     pub fn move_snake(&mut self, id: usize, dir: Direction) -> Result<bool, SnakeException> {
         let new_tail_pos = self.snakes[id].positions[self.snakes[id].positions.len() - 1];
+
+        if let (Direction::Up, Direction::Down)
+        | (Direction::Down, Direction::Up)
+        | (Direction::Left, Direction::Right)
+        | (Direction::Right, Direction::Left) = (&self.snakes[id].direction, &dir)
+        {
+            return Err(SnakeException::InvalidMove);
+        }
         match self.snakes[id].move_head(dir, self.width, self.height) {
             Ok(_) => {
                 let pos = self.snakes[id].positions[0];
@@ -77,7 +85,7 @@ impl Universe {
             }
             Err(_) => {
                 self.snakes.remove(id);
-                return Err(SnakeException::DeadSnakeException);
+                return Err(SnakeException::DeadSnake);
             }
         }
         Ok(false)

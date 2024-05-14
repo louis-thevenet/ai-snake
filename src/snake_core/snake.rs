@@ -12,7 +12,8 @@ pub struct Snake {
 }
 
 pub enum SnakeException {
-    DeadSnakeException,
+    DeadSnake,
+    InvalidMove,
 }
 
 impl Snake {
@@ -31,6 +32,7 @@ impl Snake {
         height: u64,
     ) -> Result<(), SnakeException> {
         self.direction = direction;
+
         let (x, y) = match self.direction {
             Direction::Up => (0, height + 1),
             Direction::Down => (0, height - 1),
@@ -42,7 +44,7 @@ impl Snake {
             (self.positions[0].0 + x) % width,
             (self.positions[0].1 + y) % height,
         )) {
-            return Err(SnakeException::DeadSnakeException);
+            return Err(SnakeException::DeadSnake);
         }
 
         for i in (1..self.positions.len()).rev() {
@@ -52,7 +54,7 @@ impl Snake {
         let old = self.positions[0];
 
         if (old.0 + x) % width == 0 || (old.1 + y) % height == 0 {
-            return Err(SnakeException::DeadSnakeException);
+            return Err(SnakeException::DeadSnake);
         }
 
         let new = (
@@ -61,7 +63,7 @@ impl Snake {
         );
 
         if self.positions.contains(&new) {
-            return Err(SnakeException::DeadSnakeException);
+            return Err(SnakeException::DeadSnake);
         }
         self.positions[0] = new;
         Ok(())

@@ -56,31 +56,34 @@ fn one_step_simulation(
         if let Some(input) = sim.population[i].compute_input(width, height, app_config.vision_range)
         {
             // compute output for each snake
-            // if i == 0 {
-            //     println!("Input For #{}, Score={}", i, sim.population[i].score);
-            //     println!("Bodies:");
+            if (app_config.print_input) && i == 0 {
+                println!("Input For #{}, Score={}", i, sim.population[i].score);
+                println!("Bodies:");
 
-            //     println!("{:.2} {:.2} {:.2}", input[4], input[8], input[14]);
-            //     println!("{:.2} X {:.2}", input[2], input[12]);
-            //     println!("{:.2} {:.2} {:.2}", input[0], input[6], input[10]);
+                println!("{:.2} {:.2} {:.2}", input[4], input[8], input[14]);
+                println!("{:.2} X {:.2}", input[2], input[12]);
+                println!("{:.2} {:.2} {:.2}", input[0], input[6], input[10]);
 
-            //     println!("\nFood:");
+                println!("\nFood:");
 
-            //     println!("{:.2} {:.2} {:.2}", input[5], input[9], input[15]);
-            //     println!("{:.2} X {:.2}", input[3], input[13]);
-            //     println!("{:.2} {:.2} {:.2}", input[1], input[7], input[11]);
-            //     println!();
-            // }
+                println!("{:.2} {:.2} {:.2}", input[5], input[9], input[15]);
+                println!("{:.2} X {:.2}", input[3], input[13]);
+                println!("{:.2} {:.2} {:.2}", input[1], input[7], input[11]);
+            }
+
             let output = sim.population[i].compute_output(input);
 
-            // if i == 0 {
-            //     println!("Output:");
-            //     println!(
-            //         "{:.2} {:.2} {:.2} {:.2}",
-            //         output[0], output[1], output[2], output[3]
-            //     );
-            //     println!();
-            // }
+            if (app_config.print_input) && i == 0 {
+                println!();
+                if i == 0 {
+                    println!("Output:");
+                    println!(
+                        "{:.2} {:.2} {:.2} {:.2}",
+                        output[0], output[1], output[2], output[3]
+                    );
+                    println!();
+                }
+            }
 
             // update snake position based on output
             let index_max = output

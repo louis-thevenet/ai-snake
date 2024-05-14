@@ -35,6 +35,8 @@ pub struct AppConfig {
     pub mutation_factor: f64,
     pub keep_x_best: f64,
     pub vision_range: i64,
+
+    pub print_input: bool,
 }
 
 pub struct UIPlugin;
@@ -60,11 +62,12 @@ fn configure_app_state(mut app_state: ResMut<AppConfig>) {
     app_state.mutation_factor = 0.4;
     app_state.keep_x_best = 0.02;
     app_state.vision_range = app_state.grid_size as i64;
+    app_state.print_input = false;
 }
 
 fn build_ui(
     mut contexts: EguiContexts,
-    app_config: ResMut<AppConfig>,
+    mut app_config: ResMut<AppConfig>,
     sim_state: Res<State<SimulationState>>,
     mut next_sim_state: ResMut<NextState<SimulationState>>,
     rendering_state: Res<State<RenderingState>>,
@@ -77,11 +80,11 @@ fn build_ui(
                 SimulationState::StartUp => {}
                 SimulationState::Evolving => {}
                 SimulationState::Running => {
-                    running_ui(ui, &mut next_sim_state, app_config);
+                    running_ui(ui, &mut next_sim_state, &app_config);
                 }
 
                 SimulationState::Paused | SimulationState::Stopped => {
-                    stopped_ui(ui, app_config, sim_state, &mut next_sim_state);
+                    stopped_ui(ui, &mut app_config, sim_state, &mut next_sim_state);
                 }
             }
 
@@ -102,6 +105,7 @@ fn build_ui(
                         }
                     }
                 };
+                ui.checkbox(&mut app_config.print_input, "Print I/O for model #0");
             });
 
             if ui.button("Quit").clicked() {
@@ -112,7 +116,7 @@ fn build_ui(
 
 fn stopped_ui(
     ui: &mut Ui,
-    mut app_config: ResMut<AppConfig>,
+    app_config: &mut ResMut<AppConfig>,
     sim_state: Res<State<SimulationState>>,
     next_state: &mut NextState<SimulationState>,
 ) {
@@ -164,7 +168,7 @@ fn stopped_ui(
 fn running_ui(
     ui: &mut Ui,
     next_state: &mut NextState<SimulationState>,
-    app_config: ResMut<AppConfig>,
+    app_config: &ResMut<AppConfig>,
 ) {
     ui.heading("Running");
     if ui.button("Pause").clicked() {

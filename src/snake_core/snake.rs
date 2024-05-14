@@ -43,6 +43,11 @@ impl Snake {
         }
 
         let old = self.positions[0];
+
+        if (old.0 + x) % width == 0 || (old.1 + y) % height == 0 {
+            return Err(SnakeException::DeadSnakeException);
+        }
+
         let new = (
             (old.0 + (x + width)) % width,
             (old.1 + (y + height)) % height,

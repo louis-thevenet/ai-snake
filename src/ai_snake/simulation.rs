@@ -53,7 +53,8 @@ fn one_step_simulation(
         }
 
         // get input for each snake
-        if let Some(input) = sim.population[i].compute_input(width, height) {
+        if let Some(input) = sim.population[i].compute_input(width, height, app_config.vision_range)
+        {
             // compute output for each snake
             // if i == 0 {
             //     println!("Input For #{}, Score={}", i, sim.population[i].score);

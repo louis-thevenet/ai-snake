@@ -34,6 +34,7 @@ pub struct AppConfig {
     pub last_merged: u64,
     pub mutation_factor: f64,
     pub keep_x_best: f64,
+    pub vision_range: i64,
 }
 
 pub struct UIPlugin;
@@ -58,6 +59,7 @@ fn configure_app_state(mut app_state: ResMut<AppConfig>) {
     app_state.last_merged = 0;
     app_state.mutation_factor = 0.4;
     app_state.keep_x_best = 0.02;
+    app_state.vision_range = app_state.grid_size as i64;
 }
 
 fn build_ui(
@@ -156,6 +158,7 @@ fn stopped_ui(
         egui::Slider::new(&mut app_config.keep_x_best, 0.0..=0.2)
             .text("Selection factor (merged if score > x*best_score)"),
     );
+    ui.add(egui::Slider::new(&mut app_config.vision_range, 0..=256).text("Vision range"));
 }
 
 fn running_ui(

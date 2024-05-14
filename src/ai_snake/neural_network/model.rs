@@ -48,8 +48,8 @@ impl Model {
                     if u == 0 && v == 0 {
                         continue;
                     }
-                    input.push(0.0);
-                    input.push(0.0);
+                    input.push(vision_range as f64);
+                    input.push(vision_range as f64);
 
                     for i in 1..=vision_range {
                         let pos = (
@@ -67,7 +67,6 @@ impl Model {
                             (snake.positions[0].1 + (i * v + height as i64) as u64) % height,
                         );
                         if self.universe.food.contains(&Food(pos.0, pos.1)) {
-                            //input[counter + 1] = 1. - i as f64 / vision_range as f64;
                             input[counter + 1] = 1. - i as f64 / vision_range as f64;
                             continue;
                         }
@@ -76,19 +75,8 @@ impl Model {
                 }
             }
 
-            // for i in 0..16 {
-            //     for u in -1..=1 {
-            //         for v in -1..=1 {
-            //             if u == 0 && v == 0 {
-            //                 continue;
-            //             }
-            //             println!("{},{} -> {}", u, v, input[i]);
-            //         }
-            //     }
-            // }
             Some(input)
         } else {
-            //println!("No snake in model id {}", self.id);
             None
         }
     }

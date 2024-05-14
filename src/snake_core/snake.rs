@@ -38,6 +38,13 @@ impl Snake {
             Direction::Right => (width + 1, 0),
         };
 
+        if self.positions.contains(&(
+            (self.positions[0].0 + x) % width,
+            (self.positions[0].1 + y) % height,
+        )) {
+            return Err(SnakeException::DeadSnakeException);
+        }
+
         for i in (1..self.positions.len()).rev() {
             self.positions[i] = self.positions[i - 1];
         }

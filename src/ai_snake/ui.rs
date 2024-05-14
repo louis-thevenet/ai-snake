@@ -35,6 +35,7 @@ pub struct AppConfig {
     pub mutation_factor: f64,
     pub keep_x_best: f64,
     pub vision_range: i64,
+    pub food_amount: u64,
 
     pub print_input: bool,
 }
@@ -54,14 +55,15 @@ fn configure_app_state(mut app_state: ResMut<AppConfig>) {
     app_state.generation_number = 0;
     app_state.best_score = 0;
     app_state.average_score = 0;
-    app_state.grid_size = 20;
+    app_state.grid_size = 32;
     app_state.population_size = 3000;
     app_state.current_moves = 0;
-    app_state.allowed_moves = 500;
+    app_state.allowed_moves = 800;
     app_state.last_merged = 0;
     app_state.mutation_factor = 0.4;
     app_state.keep_x_best = 0.02;
     app_state.vision_range = app_state.grid_size as i64;
+    app_state.food_amount = 10;
     app_state.print_input = false;
 }
 
@@ -163,6 +165,7 @@ fn stopped_ui(
             .text("Selection factor (merged if score > x*best_score)"),
     );
     ui.add(egui::Slider::new(&mut app_config.vision_range, 0..=256).text("Vision range"));
+    ui.add(egui::Slider::new(&mut app_config.food_amount, 0..=256).text("Food ammount"));
 }
 
 fn running_ui(

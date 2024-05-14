@@ -120,7 +120,7 @@ fn evolve(
     );
 
     for i in 0..sim.population.len() {
-        sim.population[i].reset(app_config.allowed_moves);
+        sim.population[i].reset(app_config.allowed_moves, app_config.food_amount);
     }
 
     app_config.generation_number += 1;
@@ -141,6 +141,7 @@ fn start_set_up(
         app_config.grid_size,
         app_config.allowed_moves,
         app_config.population_size,
+        app_config.food_amount,
     );
     commands.insert_resource(config);
 
@@ -152,6 +153,7 @@ fn setup_simulation(
     height: u64,
     allowed_moves: u64,
     population_count: u64,
+    food_ammount: u64,
 ) -> Configuration {
     let grid_config = GridConfiguration {
         width,
@@ -235,7 +237,7 @@ fn setup_simulation(
 
     // spawn first snakes
     for i in 0..population_count as usize {
-        genetic_model.population[i].reset(allowed_moves);
+        genetic_model.population[i].reset(allowed_moves, food_ammount);
     }
 
     println!("{genetic_model}");

@@ -30,13 +30,15 @@ impl Model {
             id,
         }
     }
-    pub fn reset(&mut self, moves_left: u64) {
+    pub fn reset(&mut self, moves_left: u64, food_ammount: u64) {
         self.add_snake(Snake::new(self.universe.width, self.universe.height, 0));
         self.score = 0;
         self.allowed_moves_number = moves_left;
         self.moves_left = self.allowed_moves_number;
         self.universe.food = vec![];
-        self.universe.spawn_food();
+        for _ in 0..food_ammount {
+            self.universe.spawn_food();
+        }
     }
     pub fn compute_input(&self, width: u64, height: u64, vision_range: i64) -> Option<Vec<f64>> {
         let mut input = vec![];
@@ -47,8 +49,8 @@ impl Model {
                     if u == 0 && v == 0 {
                         continue;
                     }
-                    input.push(vision_range as f64);
-                    input.push(vision_range as f64);
+                    input.push(0.);
+                    input.push(0.);
 
                     for i in 1..=vision_range {
                         let pos = (
